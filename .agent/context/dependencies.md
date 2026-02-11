@@ -4,38 +4,45 @@
 
 ### `github.com/google/go-github/v58`
 - **Purpose**: Official Go client library for GitHub API v3 and GraphQL API v4
-- **Version**: v58 (latest stable)
+- **Version**: v58.0.0 ✅ Installed
 - **Documentation**: https://pkg.go.dev/github.com/google/go-github/v58
 - **Usage**: Fetch Pull Request data, authenticate with GitHub, handle pagination
 - **Why**: Official library with comprehensive API coverage and active maintenance
 
 ### `github.com/jmoiron/sqlx`
 - **Purpose**: Extensions to Go's standard `database/sql` library with struct mapping
-- **Version**: v1.3.5+
+- **Version**: v1.4.0 ✅ Installed
 - **Documentation**: https://pkg.go.dev/github.com/jmoiron/sqlx
 - **Usage**: Database operations with automatic struct scanning, named queries
 - **Why**: Reduces boilerplate while maintaining compatibility with `database/sql`
 
+### `github.com/mattn/go-sqlite3`
+- **Purpose**: Pure Go SQLite driver for database/sql
+- **Version**: v1.14.34 ✅ Installed
+- **Documentation**: https://pkg.go.dev/github.com/mattn/go-sqlite3
+- **Usage**: SQLite connection and query execution (local development)
+- **Why**: Enables local development without PostgreSQL dependency
+
 ### `github.com/lib/pq`
 - **Purpose**: Pure Go PostgreSQL driver for database/sql
-- **Version**: v1.10.9+
+- **Version**: v1.11.2 ✅ Installed
 - **Documentation**: https://pkg.go.dev/github.com/lib/pq
-- **Usage**: PostgreSQL connection and query execution
+- **Usage**: PostgreSQL connection and query execution (production)
 - **Why**: Most popular and well-maintained PostgreSQL driver for Go
 
 ### `golang.org/x/oauth2`
 - **Purpose**: OAuth 2.0 client implementation
-- **Version**: Latest from golang.org/x
+- **Version**: v0.35.0 ✅ Installed
 - **Documentation**: https://pkg.go.dev/golang.org/x/oauth2
 - **Usage**: GitHub API authentication with Personal Access Tokens
 - **Why**: Official Go OAuth2 library, required by go-github
 
-### `github.com/aws/aws-lambda-go`
-- **Purpose**: AWS Lambda runtime for Go
-- **Version**: v1.41.0+
-- **Documentation**: https://pkg.go.dev/github.com/aws/aws-lambda-go
-- **Usage**: Lambda handler implementation, event processing
-- **Why**: Official AWS SDK for Lambda functions written in Go
+### `github.com/joho/godotenv`
+- **Purpose**: Load environment variables from `.env` files
+- **Version**: v1.5.1 ✅ Installed
+- **Documentation**: https://pkg.go.dev/github.com/joho/godotenv
+- **Usage**: Local development configuration management
+- **Why**: Simplifies local development by loading env vars from files
 
 ---
 

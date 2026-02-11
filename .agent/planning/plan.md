@@ -116,20 +116,23 @@ GROUP BY team_id, month;
 
 ### Phase 1: Foundation (Database & Setup)
 - [x] Initialize Go module
-- [ ] Install core dependencies
-  - [ ] `google/go-github`
-  - [ ] `jmoiron/sqlx`
-  - [ ] `lib/pq`
-  - [ ] `golang.org/x/oauth2`
-- [ ] Create database migration scripts
-  - [ ] `001_create_teams.sql`
-  - [ ] `002_create_team_memberships.sql`
-  - [ ] `003_create_pr_metrics.sql`
-  - [ ] `004_create_views.sql`
-- [ ] Implement configuration management
-  - [ ] Environment variable loader
-  - [ ] Team configuration parser (JSON)
-  - [ ] Database connection pool setup
+- [x] Install core dependencies
+  - [x] `google/go-github`
+  - [x] `jmoiron/sqlx`
+  - [x] `lib/pq`
+  - [x] `golang.org/x/oauth2`
+  - [x] `mattn/go-sqlite3` (for local dev)
+  - [x] `joho/godotenv`
+- [x] Create database migration scripts
+  - [x] `001_create_teams.sql` (SQLite & PostgreSQL)
+  - [x] `002_create_team_memberships.sql` (SQLite & PostgreSQL)
+  - [x] `003_create_pr_metrics.sql` (SQLite & PostgreSQL)
+  - [x] `004_create_views.sql` (SQLite & PostgreSQL)
+- [x] Implement configuration management
+  - [x] Environment variable loader
+  - [x] Team configuration parser (JSON)
+  - [x] Database connection pool setup
+  - [x] SQLite/PostgreSQL driver switching
 
 ### Phase 2: The Collector (Go Agent Logic)
 - [ ] **Member Sync Module**
