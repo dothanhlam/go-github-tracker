@@ -38,6 +38,17 @@ type PRMetric struct {
 	CycleTimeHours  *int       `db:"cycle_time_hours"`
 	State           string     `db:"state"`
 	CreatedDate     *time.Time `db:"created_date"`
+
+	// Review metrics
+	FirstReviewAt          *time.Time `db:"first_review_at"`
+	ReviewTurnaroundHours  *int       `db:"review_turnaround_hours"`
+	ReviewCommentsCount    int        `db:"review_comments_count"`
+	ConversationCount      int        `db:"conversation_count"`
+	ChangesRequestedCount  int        `db:"changes_requested_count"`
+	ApprovedCount          int        `db:"approved_count"`
+	ReviewersCount         int        `db:"reviewers_count"`
+	ExternalReviewersCount int        `db:"external_reviewers_count"`
+	ReviewersList          string     `db:"reviewers_list"` // JSON array
 }
 
 // TeamVelocity represents the view_team_velocity view
@@ -56,3 +67,40 @@ type DORALeadTime struct {
 	P95LeadTimeHours    float64 `db:"p95_lead_time_hours"`
 	PRCount             int     `db:"pr_count"`
 }
+
+// ReviewTurnaround represents the view_review_turnaround view
+type ReviewTurnaround struct {
+	TeamID             int     `db:"team_id"`
+	Month              string  `db:"month"`
+	AvgTurnaroundHours float64 `db:"avg_turnaround_hours"`
+	MinTurnaroundHours int     `db:"min_turnaround_hours"`
+	MaxTurnaroundHours int     `db:"max_turnaround_hours"`
+	Within24hCount     int     `db:"within_24h_count"`
+	Over24hCount       int     `db:"over_24h_count"`
+	PRCount            int     `db:"pr_count"`
+}
+
+// ReviewEngagement represents the view_review_engagement view
+type ReviewEngagement struct {
+	TeamID                int     `db:"team_id"`
+	Month                 string  `db:"month"`
+	AvgCommentsPerPR      float64 `db:"avg_comments_per_pr"`
+	AvgConversationsPerPR float64 `db:"avg_conversations_per_pr"`
+	AvgReviewersPerPR     float64 `db:"avg_reviewers_per_pr"`
+	ChangesRequestedRate  float64 `db:"changes_requested_rate"`
+	ApprovalRate          float64 `db:"approval_rate"`
+	PRCount               int     `db:"pr_count"`
+}
+
+// KnowledgeSharing represents the view_knowledge_sharing view
+type KnowledgeSharing struct {
+	TeamID                  int     `db:"team_id"`
+	Month                   string  `db:"month"`
+	AvgReviewers            float64 `db:"avg_reviewers"`
+	AvgExternalReviewers    float64 `db:"avg_external_reviewers"`
+	ExternalReviewerRate    float64 `db:"external_reviewer_rate"`
+	TotalExternalReviews    int     `db:"total_external_reviews"`
+	PRsWithExternalReviews  int     `db:"prs_with_external_reviews"`
+	PRCount                 int     `db:"pr_count"`
+}
+

@@ -39,10 +39,32 @@ type Config struct {
 }
 
 // Load loads configuration from environment variables
-// It first attempts to load from a .env file if it exists
+// It first attempts to load from an environment-specific .env file
+// Environment files are loaded in this order:
+// 1. .env.{APP_ENV} (e.g., .env.local, .env.test, .env.production)
+// 2. .env (fallback, production only)
+//
+// Default APP_ENV is "local" if not set
 func Load() (*Config, error) {
-	// Try to load .env file (ignore error if it doesn't exist)
-	_ = godotenv.Load()
+	// Get the environment (default to "local")
+	env := getEnv("APP_ENV", "local")
+
+	// Try to load environment-specific file first
+	envFile := fmt.Sprintf(".env.%s", env)
+	if err := godotenv.Load(envFile); err != nil {
+		// If environment-specific file doesn't exist, try .env (production only)
+		if env == "production" {
+			if err := godotenv.Load(".env"); err != nil {
+				// Ignore error if .env doesn't exist (use system env vars)
+				fmt.Printf("Warning: No .env file found, using system environment variables\n")
+			}
+		} else {
+			// For non-production, warn if environment file is missing
+			fmt.Printf("Warning: %s not found, using system environment variables\n", envFile)
+		}
+	} else {
+		fmt.Printf("Loaded configuration from %s\n", envFile)
+	}
 
 	cfg := &Config{
 		DBDriver:  getEnv("DB_DRIVER", "sqlite3"),

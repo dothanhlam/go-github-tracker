@@ -12,6 +12,9 @@ A DORA metrics tracking tool that collects Pull Request data from GitHub to meas
 
 - **Team Velocity**: PRs merged per week
 - **Lead Time**: Time from PR creation to merge (median & P95)
+- **Review Metrics**: Turnaround time, comment ratios, approval rates, knowledge sharing
+
+**📖 [View Complete Features Documentation](docs/FEATURES.md)**
 
 ### Key Features
 
