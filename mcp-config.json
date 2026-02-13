@@ -1,0 +1,12 @@
+{
+    "mcpServers": {
+        "dora-metrics-sqlite": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-sqlite",
+                "./data/dora_metrics.db"
+            ]
+        }
+    }
+}
