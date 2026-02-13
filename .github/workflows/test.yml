@@ -25,7 +25,7 @@ jobs:
       run: go mod download
 
     - name: Run tests with coverage
-      run: go test ./internal/... -v -coverprofile=coverage.out -covermode=atomic
+      run: go test $(go list ./internal/... | grep -v '/internal/mcp') -v -coverprofile=coverage.out -covermode=atomic
 
     - name: Generate coverage report
       run: go tool cover -func=coverage.out

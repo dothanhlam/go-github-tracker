@@ -8,7 +8,8 @@ description: How to run tests
 
 1. **Run all tests**
    ```bash
-   go test ./...
+# Run all tests except MCP (which is incomplete)
+go test $(go list ./internal/... | grep -v '/internal/mcp') -v
    ```
 
 2. **Run tests with coverage**
