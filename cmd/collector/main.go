@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/dothanhlam/go-github-tracker/internal/collector"
 	"github.com/dothanhlam/go-github-tracker/internal/config"
 	"github.com/dothanhlam/go-github-tracker/internal/database"
 )
@@ -55,11 +56,27 @@ func main() {
 	}
 	fmt.Println("✓ Schema verified")
 
-	fmt.Println("\n✅ Phase 1 setup complete!")
-	fmt.Println("\nNext steps:")
-	fmt.Println("  1. Add team data to the database")
-	fmt.Println("  2. Implement GitHub PR collector (Phase 2)")
-	fmt.Println("  3. Test PR filtering and attribution")
+	// Run Phase 2: Data Collection
+	fmt.Println("\n🔄 Starting PR data collection...")
+	if err := runCollector(cfg, db); err != nil {
+		log.Fatalf("Collection failed: %v", err)
+	}
+
+	fmt.Println("\n✅ Collection complete!")
+	fmt.Println("\nQuery your metrics:")
+	fmt.Println("  sqlite3 ./data/dora_metrics.db \"SELECT * FROM view_team_velocity;\"")
+	fmt.Println("  sqlite3 ./data/dora_metrics.db \"SELECT * FROM view_review_turnaround;\"")
+}
+
+// runCollector executes the PR collection process
+func runCollector(cfg *config.Config, db *database.DB) error {
+	// Import collector package
+	collector, err := collector.New(cfg, db)
+	if err != nil {
+		return fmt.Errorf("failed to create collector: %w", err)
+	}
+
+	return collector.Run()
 }
 
 // verifySchema checks that all required tables exist

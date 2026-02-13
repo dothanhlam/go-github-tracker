@@ -45,3 +45,5 @@ temp/
 # Logs
 *.log
 logs/
+
+data/
