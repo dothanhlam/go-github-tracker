@@ -1,0 +1,33 @@
+# Example variable values for dev environment
+# Copy this to terraform.tfvars and fill in your values
+
+aws_region = "ap-southeast-1"
+environment = "dev"
+project_name = "dora-metrics"
+
+# Lambda configuration
+lambda_memory = 512
+lambda_timeout = 300
+
+# EventBridge schedule (every 4 hours)
+schedule_expression = "rate(4 hours)"
+
+# RDS configuration
+db_instance_class = "db.t4g.micro"
+db_allocated_storage = 20
+db_name = "dora_metrics"
+
+# Application configuration
+github_repositories = "owner/repo1,owner/repo2"
+
+team_config_json = <<EOF
+[
+  {
+    "name": "Engineering Team",
+    "members": [
+      {"username": "user1", "allocation": 1.0},
+      {"username": "user2", "allocation": 1.0}
+    ]
+  }
+]
+EOF

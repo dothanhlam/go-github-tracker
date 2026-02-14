@@ -32,10 +32,28 @@ go.work
 .DS_Store
 Thumbs.db
 
-# Environment variables
+# Data directory
+/data/
+
+# Environment files
 .env
-.env.*
-!.env.example
+.env.local
+.env.production
+*.env
+
+# Terraform
+terraform/.terraform/
+terraform/**/.terraform/
+terraform/**/.terraform.lock.hcl
+terraform/**/terraform.tfstate
+terraform/**/terraform.tfstate.backup
+terraform/**/terraform.tfvars
+terraform/**/.terraform.tfstate.lock.info
+terraform/**/tfplan
+
+# Lambda deployment
+lambda-deployment.zip
+bootstrap.example
 
 # Temporary files
 tmp/
