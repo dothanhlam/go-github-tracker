@@ -22,7 +22,13 @@ Essential reading for understanding the project architecture and conventions.
 
 - **`architecture.md`** - System design, component interactions, data flow
 - **`conventions.md`** - Go coding standards and project-specific conventions
-- **`dependencies.md`** - Core dependencies (go-github, sqlx, oauth2) and their purposes
+- **`dependencies.md`** - Core dependencies (go-github, sqlx, oauth2, mcp-go) and their purposes
+- **`environments.md`** - Environment configuration (.env files, database switching)
+- **`testing.md`** - Testing strategy, test structure, coverage statistics
+- **`ci-cd.md`** - GitHub Actions workflow, test automation, deployment pipeline
+- **`mcp-configuration.md`** - MCP server configuration for AI-powered insights
+- **`test-exclusions.md`** - Packages excluded from CI tests and why
+- **`review_metrics.md`** - PR review metrics schema and queries
 
 ### `planning/` - Planning Documents
 Comprehensive planning and requirements documentation.

@@ -50,14 +50,22 @@
 
 ### `github.com/stretchr/testify`
 - **Purpose**: Testing toolkit with assertions and mocking
-- **Version**: v1.8.4+
+- **Version**: v1.9.0 ✅ Installed
 - **Documentation**: https://pkg.go.dev/github.com/stretchr/testify
 - **Usage**: Unit tests, assertions, test suites, mocking
 - **Why**: Industry standard for Go testing with rich assertion library
 
+### `github.com/mark3labs/mcp-go`
+- **Purpose**: Model Context Protocol (MCP) SDK for Go
+- **Version**: v0.43.2 ✅ Installed
+- **Documentation**: https://pkg.go.dev/github.com/mark3labs/mcp-go
+- **Usage**: MCP server implementation for AI-powered metrics insights
+- **Why**: Enables AI assistants (Gemini, Claude) to query metrics via MCP protocol
+- **Status**: Server structure complete, needs API compatibility fixes
+
 ### `github.com/joho/godotenv`
 - **Purpose**: Load environment variables from `.env` files
-- **Version**: v1.5.1+
+- **Version**: v1.5.1 ✅ Installed
 - **Documentation**: https://pkg.go.dev/github.com/joho/godotenv
 - **Usage**: Local development configuration management
 - **Why**: Simplifies local development by loading env vars from files
