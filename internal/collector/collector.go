@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/dothanhlam/go-github-tracker/internal/config"
 	"github.com/dothanhlam/go-github-tracker/internal/database"
@@ -72,8 +73,13 @@ func (c *Collector) Run() error {
 func (c *Collector) collectRepository(owner, repo string) (int, error) {
 	fmt.Printf("🔄 Processing repository: %s/%s\n", owner, repo)
 
-	// Fetch all PRs
-	prs, err := c.github.FetchPRs(owner, repo)
+	// Calculate lookback date
+	since := time.Now().AddDate(0, 0, -c.config.LookbackDays)
+	fmt.Printf("  📅 Collecting PRs updated since: %s (%d days lookback)\n", 
+		since.Format("2006-01-02"), c.config.LookbackDays)
+
+	// Fetch PRs with date filter
+	prs, err := c.github.FetchPRs(owner, repo, since)
 	if err != nil {
 		return 0, err
 	}

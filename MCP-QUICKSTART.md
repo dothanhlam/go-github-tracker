@@ -48,18 +48,26 @@ Your AI can query these views directly:
 - `view_knowledge_sharing` - Knowledge sharing metrics
 - `pr_metrics` - Raw PR data
 
-## Option 2: Custom Go MCP Server (Needs API Fixes)
+## Option 2: Custom Go MCP Server (Optional - Not Required)
 
-The custom Go MCP server with specialized tools needs API compatibility fixes before it can run.
+The custom Go MCP server with specialized tools is **optional** and not required since the SQLite MCP server (Option 1) is more flexible.
 
-**Status**: Code structure complete, but needs updates to match mcp-go SDK v0.43.2 API
+**Status**: 
+- ✅ REST API is now complete (`API_SERVER.md`)
+- ✅ Code structure complete for custom MCP server
+- ⚠️ Needs API compatibility fixes to match mcp-go SDK v0.43.2
 
-**Location**: `cmd/mcp-server/main.go`
+**Location**: `cmd/mcp-server/main.go`, `internal/mcp/`
 
-**To fix**: Update resource and tool handlers to match the SDK's expected signatures (see implementation guide in walkthrough.md)
+**Note**: The SQLite MCP server (Option 1) is recommended because:
+- Works immediately without fixes
+- AI can write any SQL query (more flexible than predefined tools)
+- Direct access to all views and tables
+- No maintenance needed
 
 ## Recommendation
 
 **Use Option 1 (SQLite MCP Server)** for immediate AI-powered insights. It works out of the box and gives your AI full SQL query access to your metrics database.
 
-The custom Go server (Option 2) can be completed later if you want specialized tools and more structured queries.
+The custom Go server (Option 2) is optional and can be completed later if you want specialized tools, but it's not necessary since the SQLite version is more powerful and flexible.
+

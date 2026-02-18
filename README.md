@@ -16,14 +16,54 @@ A DORA metrics tracking tool that collects Pull Request data from GitHub to meas
 
 **📖 [View Complete Features Documentation](docs/FEATURES.md)**
 
-### Key Features
+## Features
 
-✅ **Team-Filtered Tracking** - Only track PRs from configured team members, even in shared repositories  
-✅ **Multi-Team Support** - Handle team members who belong to multiple teams with weighted allocations  
-✅ **Automated Collection** - Runs every 4 hours via AWS EventBridge  
-✅ **Idempotent Operations** - Safe to re-run without creating duplicate data  
-✅ **SQL Views** - Easy-to-query views for velocity and lead time metrics  
-✅ **REST API** - JSON endpoints for programmatic access to metrics  
+✅ **Data Collection**
+- Automated GitHub PR metrics collection
+- Team-based metrics tracking
+- Review turnaround time analysis
+- Knowledge sharing metrics
+- DORA metrics (Lead Time, Deployment Frequency)
+
+✅ **Storage & Analysis**
+- SQLite/PostgreSQL support
+- Pre-built SQL views for common queries
+- Migration tracking system
+- Efficient data aggregation
+
+✅ **REST API** ✨ NEW
+- HTTP endpoints for all metrics
+- API key authentication
+- Query parameters for date ranges
+- Health check endpoint
+- See [API_SERVER.md](API_SERVER.md) for details
+
+✅ **AI-Powered Insights**
+- MCP server integration for AI assistants
+- Natural language queries via SQLite MCP
+- Direct SQL access to all metrics
+- See [MCP-QUICKSTART.md](MCP-QUICKSTART.md) for setup
+
+✅ **AWS Deployment Ready**
+- Complete Terraform infrastructure
+- Lambda function for scheduled collection
+- RDS PostgreSQL support
+- EventBridge scheduling
+- CloudWatch monitoring
+- See [terraform/README.md](terraform/README.md) for deployment
+
+## Current Status
+
+| Phase | Status | Description |
+|-------|--------|-------------|
+| Phase 1: Foundation | ✅ Complete | Database schema, migrations, configuration |
+| Phase 2: Collector | ✅ Complete | GitHub API integration, data collection |
+| Phase 2.5: Testing | ✅ Complete | Unit tests, CI/CD with GitHub Actions |
+| Phase 3: SQL Views | ✅ Complete | Pre-built views for metrics analysis |
+| **Phase 3: API** | **✅ Complete** | **REST API with 7 endpoints** |
+| Phase 3.5: MCP | ✅ Working | SQLite MCP server for AI queries |
+| Phase 4: AWS Deploy | 🚧 Ready | Terraform complete, awaiting deployment |
+| Phase 5: Dashboard | 📋 Planned | Vue.js frontend (future) |
 
 ---
 
@@ -113,6 +153,11 @@ GITHUB_PAT=ghp_your_personal_access_token_here
 # Database Configuration
 DB_URL=postgres://user:password@localhost:5432/dora_metrics?sslmode=disable
 
+# Collection Configuration
+# Limit PR collection to last N days (default: 90)
+# Prevents performance issues with large repositories
+COLLECTION_LOOKBACK_DAYS=90
+
 # Team Configuration (JSON array)
 TEAM_CONFIG_JSON='[
   {
@@ -132,10 +177,11 @@ REPOSITORIES=owner/repo1,owner/repo2
 
 ```bash
 # Run the collector
-./bin/go-github-tracker collect
+./bin/go-github-tracker
 
-# Run the API server (if implemented)
-./bin/go-github-tracker serve --port 8080
+# Or build and run the API server
+go build -o bin/api-server cmd/api-server/main.go
+API_KEYS=test-key ./bin/api-server
 ```
 
 ---
@@ -170,14 +216,35 @@ ORDER BY month DESC
 LIMIT 6;
 ```
 
-#### API Endpoints (Future)
+#### REST API (Available Now)
 ```bash
+# Health check
+curl http://localhost:8080/api/v1/health
+
+# List teams
+curl -H "X-API-Key: your-key" \
+  http://localhost:8080/api/v1/teams
+
 # Get team velocity
-curl http://localhost:8080/metrics/team/1/velocity
+curl -H "X-API-Key: your-key" \
+  "http://localhost:8080/api/v1/teams/1/velocity?start_date=2026-01-01&end_date=2026-02-15"
 
 # Get DORA lead time
-curl http://localhost:8080/metrics/team/1/lead-time
+curl -H "X-API-Key: your-key" \
+  http://localhost:8080/api/v1/teams/1/lead-time
+
+# Get review metrics
+curl -H "X-API-Key: your-key" \
+  http://localhost:8080/api/v1/teams/1/review-turnaround
+
+curl -H "X-API-Key: your-key" \
+  http://localhost:8080/api/v1/teams/1/review-engagement
+
+curl -H "X-API-Key: your-key" \
+  http://localhost:8080/api/v1/teams/1/knowledge-sharing
 ```
+
+**See [API_SERVER.md](API_SERVER.md) for complete API documentation.**
 
 ---
 
@@ -193,16 +260,23 @@ curl http://localhost:8080/metrics/team/1/lead-time
 │   └── workflows/          # Build, test, deploy workflows
 ├── cmd/
 │   ├── collector/          # Main collector application
-│   └── api/                # API server (future)
+│   ├── api-server/         # REST API server ✨ NEW
+│   └── mcp-server/         # MCP server (optional)
 ├── internal/
+│   ├── api/                # API handlers, middleware ✨ NEW
+│   ├── service/            # Business logic layer ✨ NEW
 │   ├── config/             # Configuration management
 │   ├── github/             # GitHub API client
 │   ├── database/           # Database operations
 │   ├── collector/          # PR collection logic
-│   └── metrics/            # Metrics calculation
+│   ├── metrics/            # Metrics calculation
+│   └── mcp/                # MCP resources and tools
 ├── pkg/                    # Public libraries (if any)
 ├── migrations/             # Database migration scripts
+├── terraform/              # AWS infrastructure ✨ NEW
 ├── tests/                  # Integration tests
+├── API_SERVER.md          # API documentation ✨ NEW
+├── MCP-QUICKSTART.md      # MCP setup guide
 └── README.md              # This file
 ```
 
@@ -253,19 +327,21 @@ Configure these in the Lambda function settings:
 - `DB_URL` - PostgreSQL connection string
 - `TEAM_CONFIG_JSON` - Team configuration JSON
 - `REPOSITORIES` - Comma-separated list of repositories
+- `COLLECTION_LOOKBACK_DAYS` - Number of days to look back (default: 90, prevents performance issues)
 
 ---
 
 ## Roadmap
 
-See [.agent/planning/roadmap.md](.agent/planning/roadmap.md) for detailed milestones.
+See [.agent/planning/plan.md](.agent/planning/plan.md) for detailed milestones.
 
-- ✅ **Phase 1**: Foundation & Setup (Week 1)
-- ⏳ **Phase 2**: Data Collection (Week 2-3)
-- 📅 **Phase 3**: Metrics & API (Week 3-4)
-- 📅 **Phase 4**: Deployment & Automation (Week 4-5)
-- 📅 **Phase 5**: Production Hardening (Week 6-8)
-- 🔮 **Future**: Vue.js Dashboard, Advanced Metrics
+- ✅ **Phase 1**: Foundation & Setup - Database, migrations, configuration
+- ✅ **Phase 2**: Data Collection - GitHub API integration, PR metrics
+- ✅ **Phase 2.5**: Testing & QA - Unit tests, CI/CD with GitHub Actions
+- ✅ **Phase 3**: SQL Views & API - Pre-built views, REST API with 7 endpoints
+- ✅ **Phase 3.5**: MCP Integration - SQLite MCP server for AI queries
+- 🚧 **Phase 4**: AWS Deployment - Terraform complete, ready to deploy
+- 📅 **Phase 5**: Dashboard - Vue.js frontend (future)
 
 ---
 

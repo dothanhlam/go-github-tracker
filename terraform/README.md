@@ -92,6 +92,9 @@ cp terraform.tfvars.example terraform.tfvars
 - `github_repositories` - Repositories to track
 - `team_config_json` - Team configuration
 
+**Optional variables**:
+- `COLLECTION_LOOKBACK_DAYS` - Days to look back for PR collection (default: 90)
+
 ### 5. Set GitHub PAT (One-time)
 
 ```bash
@@ -218,6 +221,7 @@ aws lambda get-function \
 ### Timeout errors
 
 - Increase Lambda timeout (current: 300s)
+- Reduce `COLLECTION_LOOKBACK_DAYS` to limit PR collection (e.g., 30 or 60 days)
 - Check database query performance
 - Review CloudWatch logs for bottlenecks
 

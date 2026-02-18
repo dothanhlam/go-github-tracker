@@ -31,6 +31,9 @@ type Config struct {
 	// GitHub configuration
 	GitHubPAT string
 
+	// Collection configuration
+	LookbackDays int // Number of days to look back for PR collection
+
 	// Team configuration
 	Teams []TeamConfig
 
@@ -67,9 +70,10 @@ func Load() (*Config, error) {
 	}
 
 	cfg := &Config{
-		DBDriver:  getEnv("DB_DRIVER", "sqlite3"),
-		DBURL:     getEnv("DB_URL", "./data/dora_metrics.db"),
-		GitHubPAT: getEnv("GITHUB_PAT", ""),
+		DBDriver:     getEnv("DB_DRIVER", "sqlite3"),
+		DBURL:        getEnv("DB_URL", "./data/dora_metrics.db"),
+		GitHubPAT:    getEnv("GITHUB_PAT", ""),
+		LookbackDays: getEnvInt("COLLECTION_LOOKBACK_DAYS", 90),
 	}
 
 	// Parse team configuration
@@ -117,6 +121,17 @@ func (c *Config) Validate() error {
 func getEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
+	}
+	return defaultValue
+}
+
+// getEnvInt gets an integer environment variable or returns a default value
+func getEnvInt(key string, defaultValue int) int {
+	if value := os.Getenv(key); value != "" {
+		var intValue int
+		if _, err := fmt.Sscanf(value, "%d", &intValue); err == nil {
+			return intValue
+		}
 	}
 	return defaultValue
 }

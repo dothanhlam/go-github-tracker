@@ -29,9 +29,9 @@ func NewClient(pat string) *Client {
 	}
 }
 
-// FetchPRs fetches all pull requests from a repository
-func (c *Client) FetchPRs(owner, repo string) ([]*github.PullRequest, error) {
-	fmt.Printf("  📥 Fetching PRs from %s/%s...\n", owner, repo)
+// FetchPRs fetches pull requests from a repository since a given date
+func (c *Client) FetchPRs(owner, repo string, since time.Time) ([]*github.PullRequest, error) {
+	fmt.Printf("  📥 Fetching PRs from %s/%s (since %s)...\n", owner, repo, since.Format("2006-01-02"))
 
 	var allPRs []*github.PullRequest
 	opts := &github.PullRequestListOptions{
@@ -49,7 +49,17 @@ func (c *Client) FetchPRs(owner, repo string) ([]*github.PullRequest, error) {
 			return nil, fmt.Errorf("failed to fetch PRs: %w", err)
 		}
 
-		allPRs = append(allPRs, prs...)
+		// Filter PRs by date - stop early if PRs are too old
+		for _, pr := range prs {
+			// Check if PR was updated before the lookback date
+			if pr.UpdatedAt != nil && pr.UpdatedAt.Before(since) {
+				fmt.Printf("  ⏹️  Stopped at PR #%d (updated %s, before lookback date)\n", 
+					pr.GetNumber(), pr.UpdatedAt.Format("2006-01-02"))
+				fmt.Printf("  ✓ Fetched %d PRs within lookback window\n", len(allPRs))
+				return allPRs, nil // Early exit
+			}
+			allPRs = append(allPRs, pr)
+		}
 
 		if resp.NextPage == 0 {
 			break
