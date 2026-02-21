@@ -20,6 +20,38 @@ go version
 
 ---
 
+## Phase 0: Deploy Shared VPC (One-Time Setup)
+
+The VPC is shared across all environments (dev, test, prod) and any other projects. Deploy it once — you never need to recreate it.
+
+```bash
+# Navigate to shared-vpc directory
+cd terraform/shared-vpc
+
+# Initialize Terraform
+terraform init
+
+# Review plan
+terraform plan
+
+# Deploy (creates VPC, subnets, NAT Gateway, route tables)
+terraform apply
+
+# Save the output IDs — you'll need them for dev/terraform.tfvars
+terraform output
+```
+
+**Expected output**:
+```
+vpc_id             = "vpc-xxxxxxxxxxxxxxxxx"
+private_subnet_ids = ["subnet-aaa...", "subnet-bbb..."]
+public_subnet_ids  = ["subnet-ccc...", "subnet-ddd..."]
+```
+
+Copy these values into `terraform/dev/terraform.tfvars` at the `vpc_id` / `private_subnet_ids` fields.
+
+---
+
 ## Step 1: Create S3 Backend for Terraform State
 
 ```bash
@@ -107,7 +139,6 @@ cd terraform/dev
 cp terraform.tfvars.example terraform.tfvars
 
 # Edit terraform.tfvars with your values
-# Use your preferred editor (vim, nano, code, etc.)
 vim terraform.tfvars
 ```
 
@@ -126,6 +157,10 @@ team_config_json = <<EOF
   }
 ]
 EOF
+
+# From Phase 0: paste the outputs from terraform/shared-vpc
+vpc_id             = "vpc-xxxxxxxxxxxxxxxxx"
+private_subnet_ids = ["subnet-xxxxxxxxxxxxxxxxx", "subnet-yyyyyyyyyyyyyyyyy"]
 ```
 
 ---

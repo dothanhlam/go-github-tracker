@@ -52,20 +52,11 @@ resource "aws_security_group" "lambda" {
   }
 }
 
-# Get DB credentials from Secrets Manager
-data "aws_secretsmanager_secret_version" "db_credentials" {
-  secret_id = var.db_secret_arn
-}
-
-locals {
-  db_creds = jsondecode(data.aws_secretsmanager_secret_version.db_credentials.secret_string)
-}
-
 # RDS PostgreSQL Instance
 resource "aws_db_instance" "main" {
   identifier     = "${var.project_name}-${var.environment}-db"
   engine         = "postgres"
-  engine_version = "15.4"
+  engine_version = "16.6"
   instance_class = var.instance_class
 
   allocated_storage     = var.allocated_storage
@@ -74,8 +65,8 @@ resource "aws_db_instance" "main" {
   storage_encrypted     = true
 
   db_name  = var.db_name
-  username = local.db_creds.username
-  password = local.db_creds.password
+  username = "postgres"
+  password = var.db_password
 
   db_subnet_group_name   = aws_db_subnet_group.main.name
   vpc_security_group_ids = [aws_security_group.rds.id]

@@ -1,12 +1,3 @@
-# VPC and Networking
-module "vpc" {
-  source = "../modules/vpc"
-
-  project_name = var.project_name
-  environment  = var.environment
-  vpc_cidr     = var.vpc_cidr
-}
-
 # Secrets Manager
 module "secrets" {
   source = "../modules/secrets"
@@ -19,14 +10,15 @@ module "secrets" {
 module "rds" {
   source = "../modules/rds"
 
-  project_name        = var.project_name
-  environment         = var.environment
-  db_name             = var.db_name
-  instance_class      = var.db_instance_class
-  allocated_storage   = var.db_allocated_storage
-  vpc_id              = module.vpc.vpc_id
-  subnet_ids          = module.vpc.private_subnet_ids
-  db_secret_arn       = module.secrets.db_credentials_secret_arn
+  project_name      = var.project_name
+  environment       = var.environment
+  db_name           = var.db_name
+  instance_class    = var.db_instance_class
+  allocated_storage = var.db_allocated_storage
+  vpc_id            = var.vpc_id
+  subnet_ids        = var.private_subnet_ids
+  db_secret_arn     = module.secrets.db_credentials_secret_arn
+  db_password       = module.secrets.db_password
 }
 
 # Lambda Function
@@ -37,8 +29,8 @@ module "lambda" {
   environment           = var.environment
   memory_size           = var.lambda_memory
   timeout               = var.lambda_timeout
-  vpc_id                = module.vpc.vpc_id
-  subnet_ids            = module.vpc.private_subnet_ids
+  vpc_id                = var.vpc_id
+  subnet_ids            = var.private_subnet_ids
   security_group_ids    = [module.rds.lambda_security_group_id]
   db_host               = module.rds.db_endpoint
   db_name               = var.db_name
@@ -52,10 +44,10 @@ module "lambda" {
 module "eventbridge" {
   source = "../modules/eventbridge"
 
-  project_name        = var.project_name
-  environment         = var.environment
-  schedule_expression = var.schedule_expression
-  lambda_function_arn = module.lambda.function_arn
+  project_name         = var.project_name
+  environment          = var.environment
+  schedule_expression  = var.schedule_expression
+  lambda_function_arn  = module.lambda.function_arn
   lambda_function_name = module.lambda.function_name
 }
 

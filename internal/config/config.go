@@ -1,11 +1,15 @@
 package config
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/joho/godotenv"
 )
 
@@ -41,13 +45,21 @@ type Config struct {
 	Repositories []string
 }
 
-// Load loads configuration from environment variables
-// It first attempts to load from an environment-specific .env file
-// Environment files are loaded in this order:
-// 1. .env.{APP_ENV} (e.g., .env.local, .env.test, .env.production)
-// 2. .env (fallback, production only)
+// dbSecret is the JSON structure stored in Secrets Manager for DB credentials
+type dbSecret struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+// Load loads configuration from environment variables.
+// When running in AWS Lambda:
+//   - DB credentials are fetched from Secrets Manager using DB_SECRET_ARN
+//   - GitHub PAT is fetched from Secrets Manager using GITHUB_PAT_SECRET_ARN
+//   - The Postgres DSN is constructed from DB_HOST, DB_NAME, and the fetched credentials
 //
-// Default APP_ENV is "local" if not set
+// When running locally:
+//   - Loads from .env.{APP_ENV} (default: .env.local)
+//   - Falls back to DB_URL and GITHUB_PAT env vars directly
 func Load() (*Config, error) {
 	// Get the environment (default to "local")
 	env := getEnv("APP_ENV", "local")
@@ -71,9 +83,68 @@ func Load() (*Config, error) {
 
 	cfg := &Config{
 		DBDriver:     getEnv("DB_DRIVER", "sqlite3"),
-		DBURL:        getEnv("DB_URL", "./data/dora_metrics.db"),
+		DBURL:        getEnv("DB_URL", ""),
 		GitHubPAT:    getEnv("GITHUB_PAT", ""),
 		LookbackDays: getEnvInt("COLLECTION_LOOKBACK_DAYS", 90),
+	}
+
+	// --- Resolve credentials from AWS Secrets Manager (Lambda path) ---
+	dbSecretARN := getEnv("DB_SECRET_ARN", "")
+	githubPatSecretARN := getEnv("GITHUB_PAT_SECRET_ARN", "")
+
+	if dbSecretARN != "" || githubPatSecretARN != "" {
+		awsCfg, err := config.LoadDefaultConfig(context.Background())
+		if err != nil {
+			return nil, fmt.Errorf("failed to load AWS config: %w", err)
+		}
+		smClient := secretsmanager.NewFromConfig(awsCfg)
+
+		// Fetch DB credentials from Secrets Manager
+		if dbSecretARN != "" && cfg.DBURL == "" {
+			creds, err := fetchSecret(smClient, dbSecretARN)
+			if err != nil {
+				return nil, fmt.Errorf("failed to fetch DB secret: %w", err)
+			}
+			var dbCreds dbSecret
+			if err := json.Unmarshal([]byte(creds), &dbCreds); err != nil {
+				return nil, fmt.Errorf("failed to parse DB secret JSON: %w", err)
+			}
+
+			dbHost := getEnv("DB_HOST", "")
+			dbName := getEnv("DB_NAME", "dora_metrics")
+			if dbHost == "" {
+				return nil, fmt.Errorf("DB_HOST must be set when using DB_SECRET_ARN")
+			}
+			// Build a postgres DSN from the fetched credentials
+			// DB_HOST from RDS includes the port (host:5432), so split it out
+			host := dbHost
+			port := "5432"
+			if idx := strings.LastIndex(dbHost, ":"); idx != -1 {
+				host = dbHost[:idx]
+				port = dbHost[idx+1:]
+			}
+			cfg.DBURL = fmt.Sprintf(
+				"host=%s port=%s user=%s password=%s dbname=%s sslmode=require",
+				host, port, dbCreds.Username, dbCreds.Password, dbName,
+			)
+			cfg.DBDriver = "postgres"
+			fmt.Printf("✓ DB credentials fetched from Secrets Manager\n")
+		}
+
+		// Fetch GitHub PAT from Secrets Manager
+		if githubPatSecretARN != "" && cfg.GitHubPAT == "" {
+			pat, err := fetchSecret(smClient, githubPatSecretARN)
+			if err != nil {
+				return nil, fmt.Errorf("failed to fetch GitHub PAT secret: %w", err)
+			}
+			cfg.GitHubPAT = strings.TrimSpace(pat)
+			fmt.Printf("✓ GitHub PAT fetched from Secrets Manager\n")
+		}
+	}
+
+	// Fallback to SQLite default only if still no DB_URL and driver is sqlite3
+	if cfg.DBURL == "" && cfg.DBDriver == "sqlite3" {
+		cfg.DBURL = "./data/dora_metrics.db"
 	}
 
 	// Parse team configuration
@@ -99,6 +170,20 @@ func Load() (*Config, error) {
 	return cfg, nil
 }
 
+// fetchSecret retrieves a secret value from AWS Secrets Manager
+func fetchSecret(client *secretsmanager.Client, arn string) (string, error) {
+	out, err := client.GetSecretValue(context.Background(), &secretsmanager.GetSecretValueInput{
+		SecretId: aws.String(arn),
+	})
+	if err != nil {
+		return "", err
+	}
+	if out.SecretString == nil {
+		return "", fmt.Errorf("secret %s has no string value", arn)
+	}
+	return *out.SecretString, nil
+}
+
 // Validate validates the configuration
 func (c *Config) Validate() error {
 	if c.DBDriver != "sqlite3" && c.DBDriver != "postgres" {
@@ -106,7 +191,7 @@ func (c *Config) Validate() error {
 	}
 
 	if c.DBURL == "" {
-		return fmt.Errorf("DB_URL is required")
+		return fmt.Errorf("DB_URL is required (or set DB_SECRET_ARN + DB_HOST + DB_NAME for AWS Lambda)")
 	}
 
 	// GitHub PAT is optional for now (can be added later)

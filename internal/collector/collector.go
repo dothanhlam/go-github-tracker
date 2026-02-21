@@ -71,12 +71,16 @@ func (c *Collector) Run() error {
 
 // collectRepository collects PRs from a single repository
 func (c *Collector) collectRepository(owner, repo string) (int, error) {
-	fmt.Printf("🔄 Processing repository: %s/%s\n", owner, repo)
+	repoFullName := fmt.Sprintf("%s/%s", owner, repo)
+	fmt.Printf("🔄 Processing repository: %s\n", repoFullName)
 
-	// Calculate lookback date
-	since := time.Now().AddDate(0, 0, -c.config.LookbackDays)
-	fmt.Printf("  📅 Collecting PRs updated since: %s (%d days lookback)\n", 
-		since.Format("2006-01-02"), c.config.LookbackDays)
+	// Determine collection window: incremental or initial
+	since, collectionType, err := c.getCollectionSince(repoFullName)
+	if err != nil {
+		return 0, err
+	}
+	fmt.Printf("  📅 Collection type: %s (since %s)\n",
+		collectionType, since.Format("2006-01-02 15:04:05"))
 
 	// Fetch PRs with date filter
 	prs, err := c.github.FetchPRs(owner, repo, since)
@@ -111,7 +115,7 @@ func (c *Collector) collectRepository(owner, repo string) (int, error) {
 		// Process PR for each relevant team
 		teams := c.getRelevantTeams(pr, reviews)
 		for _, teamID := range teams {
-			metric := c.processPR(pr, reviews, comments, teamID, fmt.Sprintf("%s/%s", owner, repo))
+			metric := c.processPR(pr, reviews, comments, teamID, repoFullName)
 			if err := c.store.UpsertPRMetric(metric); err != nil {
 				fmt.Printf("  ⚠️  Failed to store PR #%d: %v\n", pr.GetNumber(), err)
 				continue
@@ -120,9 +124,36 @@ func (c *Collector) collectRepository(owner, repo string) (int, error) {
 		}
 	}
 
+	// Update last collection timestamp after successful run
+	if err := c.store.UpdateLastCollectionTime(repoFullName, time.Now()); err != nil {
+		fmt.Printf("  ⚠️  Failed to update collection timestamp: %v\n", err)
+	} else {
+		fmt.Printf("  ✅ Collection timestamp updated\n")
+	}
+
 	fmt.Printf("  ✓ Processed %d PRs for team members\n", processedCount)
 	return processedCount, nil
 }
+
+// getCollectionSince determines the start time for PR collection.
+// On first run: uses COLLECTION_LOOKBACK_DAYS (default 90).
+// On subsequent runs: uses the last recorded collection timestamp.
+func (c *Collector) getCollectionSince(repoFullName string) (time.Time, string, error) {
+	lastCollected, err := c.store.GetLastCollectionTime(repoFullName)
+	if err != nil {
+		return time.Time{}, "", fmt.Errorf("failed to get last collection time: %w", err)
+	}
+
+	if lastCollected.IsZero() {
+		// First run: fall back to lookback days
+		since := time.Now().AddDate(0, 0, -c.config.LookbackDays)
+		return since, fmt.Sprintf("initial (%d-day lookback)", c.config.LookbackDays), nil
+	}
+
+	// Incremental: collect since last run
+	return lastCollected, "incremental", nil
+}
+
 
 // shouldIncludePR checks if PR involves any team member
 func (c *Collector) shouldIncludePR(pr *gh.PullRequest, reviews []*gh.PullRequestReview) bool {

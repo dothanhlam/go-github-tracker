@@ -37,3 +37,9 @@ variable "db_secret_arn" {
   description = "ARN of database credentials secret"
   type        = string
 }
+
+variable "db_password" {
+  description = "Database master password (from secrets module)"
+  type        = string
+  sensitive   = true
+}

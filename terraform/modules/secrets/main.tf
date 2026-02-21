@@ -1,17 +1,13 @@
-# GitHub PAT Secret
-resource "aws_secretsmanager_secret" "github_pat" {
-  name        = "${var.project_name}/${var.environment}/github-pat"
-  description = "GitHub Personal Access Token for ${var.project_name}"
-
-  tags = {
-    Name = "${var.project_name}-${var.environment}-github-pat"
-  }
+# GitHub PAT Secret — already created manually (Step 3 of deployment)
+# We look it up rather than creating it, so terraform apply doesn't conflict.
+data "aws_secretsmanager_secret" "github_pat" {
+  name = "${var.project_name}/${var.environment}/github-pat"
 }
 
-# Placeholder for GitHub PAT (must be set manually or via CI/CD)
+# Reference the existing secret version (do not overwrite the real PAT)
 resource "aws_secretsmanager_secret_version" "github_pat" {
-  secret_id     = aws_secretsmanager_secret.github_pat.id
-  secret_string = var.github_pat_value != "" ? var.github_pat_value : "PLACEHOLDER_SET_VIA_AWS_CONSOLE"
+  secret_id     = data.aws_secretsmanager_secret.github_pat.id
+  secret_string = "PLACEHOLDER_SET_VIA_AWS_CONSOLE"
 
   lifecycle {
     ignore_changes = [secret_string]

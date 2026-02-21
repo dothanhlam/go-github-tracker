@@ -62,8 +62,12 @@ variable "team_config_json" {
   type        = string
 }
 
-variable "vpc_cidr" {
-  description = "VPC CIDR block"
+variable "vpc_id" {
+  description = "Shared VPC ID (from terraform/shared-vpc output)"
   type        = string
-  default     = "10.0.0.0/16"
+}
+
+variable "private_subnet_ids" {
+  description = "Private subnet IDs from the shared VPC (for Lambda and RDS)"
+  type        = list(string)
 }

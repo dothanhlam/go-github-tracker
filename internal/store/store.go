@@ -2,6 +2,7 @@ package store
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/dothanhlam/go-github-tracker/internal/database"
 )
@@ -64,5 +65,36 @@ func (s *Store) UpsertPRMetric(metric *database.PRMetric) error {
 		return fmt.Errorf("failed to upsert PR metric: %w", err)
 	}
 
+	return nil
+}
+
+// GetLastCollectionTime returns the last time a repository was collected.
+// Returns zero time if the repository has never been collected.
+func (s *Store) GetLastCollectionTime(repository string) (time.Time, error) {
+	var lastCollectedAt time.Time
+	query := `SELECT last_collected_at FROM collection_metadata WHERE repository = ?`
+	err := s.db.Get(&lastCollectedAt, query, repository)
+	if err != nil {
+		// No row found means this is the first collection
+		if err.Error() == "sql: no rows in result set" {
+			return time.Time{}, nil
+		}
+		return time.Time{}, fmt.Errorf("failed to get last collection time: %w", err)
+	}
+	return lastCollectedAt, nil
+}
+
+// UpdateLastCollectionTime upserts the last collection timestamp for a repository.
+func (s *Store) UpdateLastCollectionTime(repository string, timestamp time.Time) error {
+	query := `
+		INSERT INTO collection_metadata (repository, last_collected_at)
+		VALUES (?, ?)
+		ON CONFLICT(repository) DO UPDATE SET
+			last_collected_at = excluded.last_collected_at
+	`
+	_, err := s.db.Exec(query, repository, timestamp)
+	if err != nil {
+		return fmt.Errorf("failed to update last collection time: %w", err)
+	}
 	return nil
 }

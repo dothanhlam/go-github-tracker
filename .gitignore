@@ -6,6 +6,10 @@
 *.dylib
 bin/
 dist/
+# Root-level Go build artifacts
+/collector
+/api-server
+/mcp-server
 
 # Test binary, built with `go test -c`
 *.test

@@ -4,6 +4,7 @@ This directory contains Terraform infrastructure code for deploying the DORA met
 
 ## Architecture
 
+- **Shared VPC**: One VPC with a NAT Gateway, shared across all environments and projects
 - **Lambda Function**: ARM64 Go runtime, runs every 4 hours
 - **RDS PostgreSQL**: Database for metrics storage
 - **EventBridge**: Scheduled trigger
@@ -14,7 +15,12 @@ This directory contains Terraform infrastructure code for deploying the DORA met
 
 ```
 terraform/
-├── dev/                    # Dev environment
+├── shared-vpc/             # Shared VPC (deploy once, used by all envs)
+│   ├── main.tf            # Calls the vpc module
+│   ├── variables.tf       # vpc_name, vpc_cidr, aws_region
+│   ├── outputs.tf         # vpc_id, private_subnet_ids, public_subnet_ids
+│   └── backend.tf         # S3 backend (key: shared-vpc/terraform.tfstate)
+├── dev/                    # Dev environment (references shared VPC by ID)
 │   ├── main.tf            # Main configuration
 │   ├── variables.tf       # Input variables
 │   ├── outputs.tf         # Output values
@@ -36,6 +42,24 @@ terraform/
 3. **Go** 1.21+ for building Lambda binary
 
 ## Initial Setup
+
+### Phase 0: Deploy Shared VPC (one-time, shared by all environments)
+
+```bash
+cd terraform/shared-vpc
+terraform init
+terraform apply
+
+# Copy the output IDs — you'll need them for dev/terraform.tfvars
+terraform output
+```
+
+**Expected outputs**:
+```
+vpc_id              = "vpc-xxxxxxxxxxxxxxxxx"
+private_subnet_ids  = ["subnet-aaa", "subnet-bbb"]
+public_subnet_ids   = ["subnet-ccc", "subnet-ddd"]
+```
 
 ### 1. Create S3 Backend
 
@@ -89,6 +113,8 @@ cp terraform.tfvars.example terraform.tfvars
 ```
 
 **Required variables**:
+- `vpc_id` - From `terraform output vpc_id` in `terraform/shared-vpc/`
+- `private_subnet_ids` - From `terraform output private_subnet_ids` in `terraform/shared-vpc/`
 - `github_repositories` - Repositories to track
 - `team_config_json` - Team configuration
 
@@ -198,12 +224,17 @@ aws lambda get-function \
 
 ## Cost Estimation
 
-**Dev environment** (~$17/month):
+**Shared VPC** (~$35/month, paid once regardless of number of environments):
+- NAT Gateway: ~$35 (the main cost driver)
+
+**Dev environment** (~$17/month, no VPC cost):
 - Lambda: ~$0.50
 - RDS (db.t4g.micro): ~$15
 - Secrets Manager: ~$0.80
 - CloudWatch: ~$0.50
 - S3/DynamoDB: ~$0.20
+
+**Total**: ~$52/month for shared VPC + dev, versus ~$52/month per environment with dedicated VPCs. Adding test or prod costs only ~$17/month each (no extra NAT Gateway).
 
 ## Troubleshooting
 

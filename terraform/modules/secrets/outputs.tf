@@ -1,6 +1,6 @@
 output "github_pat_secret_arn" {
   description = "ARN of GitHub PAT secret"
-  value       = aws_secretsmanager_secret.github_pat.arn
+  value       = data.aws_secretsmanager_secret.github_pat.arn
 }
 
 output "db_credentials_secret_arn" {

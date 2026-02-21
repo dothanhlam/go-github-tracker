@@ -1,7 +1,3 @@
-# CloudWatch Log Group (created in Lambda module, referenced here)
-data "aws_cloudwatch_log_group" "lambda" {
-  name = "/aws/lambda/${var.lambda_function_name}"
-}
 
 # CloudWatch Alarm - Lambda Errors
 resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
