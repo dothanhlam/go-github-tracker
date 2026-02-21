@@ -59,3 +59,13 @@ module "monitoring" {
   environment          = var.environment
   lambda_function_name = module.lambda.function_name
 }
+
+# RDS Auto Stop/Start Scheduler (10 PM stop, 10 AM start — ICT timezone)
+module "rds_scheduler" {
+  source = "../modules/rds-scheduler"
+
+  project_name           = var.project_name
+  environment            = var.environment
+  db_instance_identifier = module.rds.db_instance_identifier
+  db_instance_arn        = module.rds.db_instance_arn
+}
