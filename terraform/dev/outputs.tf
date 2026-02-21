@@ -37,3 +37,8 @@ output "cloudwatch_log_group" {
   description = "CloudWatch log group for Lambda"
   value       = module.monitoring.log_group_name
 }
+
+output "github_actions_deploy_role_arn" {
+  description = "IAM role ARN for GitHub Actions — set as AWS_DEPLOY_ROLE_ARN secret in GitHub"
+  value       = module.github_oidc.deploy_role_arn
+}

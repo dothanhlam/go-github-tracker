@@ -69,3 +69,12 @@ module "rds_scheduler" {
   db_instance_identifier = module.rds.db_instance_identifier
   db_instance_arn        = module.rds.db_instance_arn
 }
+
+# GitHub Actions OIDC — allows GitHub Actions to deploy Lambda without stored AWS keys
+module "github_oidc" {
+  source = "../modules/github-oidc"
+
+  project_name = var.project_name
+  github_org   = var.github_org
+  github_repo  = var.github_repo
+}

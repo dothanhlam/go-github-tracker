@@ -71,3 +71,15 @@ variable "private_subnet_ids" {
   description = "Private subnet IDs from the shared VPC (for Lambda and RDS)"
   type        = list(string)
 }
+
+variable "github_org" {
+  description = "GitHub organisation or username (e.g. 'dothanhlam')"
+  type        = string
+  default     = "dothanhlam"
+}
+
+variable "github_repo" {
+  description = "GitHub repository name (e.g. 'go-github-tracker')"
+  type        = string
+  default     = "go-github-tracker"
+}
