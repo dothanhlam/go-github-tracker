@@ -2,13 +2,13 @@
 CREATE VIEW IF NOT EXISTS view_team_velocity AS
 SELECT 
     team_id,
-    DATE(merged_at, 'weekday 0', '-6 days') as week,
+    DATE(merged_at, 'weekday 0', '-6 days') as week_start,
     COUNT(*) as prs_merged,
     AVG(cycle_time_hours) as avg_cycle_time_hours
 FROM pr_metrics
 WHERE merged_at IS NOT NULL
-GROUP BY team_id, week
-ORDER BY team_id, week DESC;
+GROUP BY team_id, week_start
+ORDER BY team_id, week_start DESC;
 
 -- Create view for DORA lead time (median and P95)
 -- Note: SQLite doesn't have PERCENTILE_CONT, so we use a simpler approach
