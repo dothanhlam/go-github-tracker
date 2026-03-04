@@ -1,0 +1,218 @@
+module.ec2_scheduler.aws_scheduler_schedule_group.ec2: Refreshing state... [id=openclaw-shared-ec2-scheduler]
+module.ec2_scheduler.aws_iam_role_policy.ec2_scheduler: Refreshing state... [id=openclaw-shared-ec2-scheduler-role:openclaw-shared-ec2-scheduler-policy]
+module.ec2_scheduler.aws_iam_role.ec2_scheduler: Refreshing state... [id=openclaw-shared-ec2-scheduler-role]
+aws_iam_role.openclaw: Refreshing state... [id=openclaw-shared-openclaw-role]
+data.aws_ami.amazon_linux_2023: Reading...
+module.ec2_scheduler.aws_scheduler_schedule.ec2_start: Refreshing state... [id=openclaw-shared-ec2-scheduler/openclaw-shared-ec2-start]
+aws_security_group.openclaw: Refreshing state... [id=sg-0f9bec96a572fd1eb]
+module.ec2_scheduler.aws_scheduler_schedule.ec2_stop: Refreshing state... [id=openclaw-shared-ec2-scheduler/openclaw-shared-ec2-stop]
+data.aws_ami.amazon_linux_2023: Read complete after 1s [id=ami-0aea4864ff9f4a47c]
+aws_iam_role_policy_attachment.ssm_core: Refreshing state... [id=openclaw-shared-openclaw-role-20260222095312744800000001]
+aws_iam_instance_profile.openclaw: Refreshing state... [id=openclaw-shared-openclaw-profile]
+aws_instance.openclaw: Refreshing state... [id=i-04285434037794e84]
+
+Note: Objects have changed outside of Terraform
+
+Terraform detected the following changes made outside of Terraform since the
+last "terraform apply" which may have affected this plan:
+
+  # aws_instance.openclaw has changed
+  ~ resource "aws_instance" "openclaw" {
+        id                                   = "i-04285434037794e84"
+      ~ public_ip                            = "13.250.120.119" -> "13.212.252.177"
+        tags                                 = {
+            "Name" = "openclaw-shared-openclaw"
+        }
+        # (39 unchanged attributes hidden)
+
+        # (8 unchanged blocks hidden)
+    }
+
+
+Unless you have made equivalent changes to your configuration, or ignored the
+relevant attributes using ignore_changes, the following plan may include
+actions to undo or respond to these changes.
+
+─────────────────────────────────────────────────────────────────────────────
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  - destroy
+
+Terraform will perform the following actions:
+
+  # module.ec2_scheduler.aws_iam_role.ec2_scheduler will be destroyed
+  # (because aws_iam_role.ec2_scheduler is not in configuration)
+  - resource "aws_iam_role" "ec2_scheduler" {
+      - arn                   = "arn:aws:iam::315998192499:role/openclaw-shared-ec2-scheduler-role" -> null
+      - assume_role_policy    = jsonencode(
+            {
+              - Statement = [
+                  - {
+                      - Action    = "sts:AssumeRole"
+                      - Effect    = "Allow"
+                      - Principal = {
+                          - Service = "scheduler.amazonaws.com"
+                        }
+                    },
+                ]
+              - Version   = "2012-10-17"
+            }
+        ) -> null
+      - create_date           = "2026-02-22T14:16:52Z" -> null
+      - force_detach_policies = false -> null
+      - id                    = "openclaw-shared-ec2-scheduler-role" -> null
+      - managed_policy_arns   = [] -> null
+      - max_session_duration  = 3600 -> null
+      - name                  = "openclaw-shared-ec2-scheduler-role" -> null
+      - path                  = "/" -> null
+      - tags                  = {
+          - "Name" = "openclaw-shared-ec2-scheduler-role"
+        } -> null
+      - tags_all              = {
+          - "Name" = "openclaw-shared-ec2-scheduler-role"
+        } -> null
+      - unique_id             = "AROAUTEXVYNZV67HI4XW3" -> null
+        # (3 unchanged attributes hidden)
+
+      - inline_policy {
+          - name   = "openclaw-shared-ec2-scheduler-policy" -> null
+          - policy = jsonencode(
+                {
+                  - Statement = [
+                      - {
+                          - Action   = [
+                              - "ec2:StopInstances",
+                              - "ec2:StartInstances",
+                            ]
+                          - Effect   = "Allow"
+                          - Resource = "arn:aws:ec2:ap-southeast-1:315998192499:instance/i-04285434037794e84"
+                        },
+                    ]
+                  - Version   = "2012-10-17"
+                }
+            ) -> null
+        }
+    }
+
+  # module.ec2_scheduler.aws_iam_role_policy.ec2_scheduler will be destroyed
+  # (because aws_iam_role_policy.ec2_scheduler is not in configuration)
+  - resource "aws_iam_role_policy" "ec2_scheduler" {
+      - id          = "openclaw-shared-ec2-scheduler-role:openclaw-shared-ec2-scheduler-policy" -> null
+      - name        = "openclaw-shared-ec2-scheduler-policy" -> null
+      - policy      = jsonencode(
+            {
+              - Statement = [
+                  - {
+                      - Action   = [
+                          - "ec2:StopInstances",
+                          - "ec2:StartInstances",
+                        ]
+                      - Effect   = "Allow"
+                      - Resource = "arn:aws:ec2:ap-southeast-1:315998192499:instance/i-04285434037794e84"
+                    },
+                ]
+              - Version   = "2012-10-17"
+            }
+        ) -> null
+      - role        = "openclaw-shared-ec2-scheduler-role" -> null
+        # (1 unchanged attribute hidden)
+    }
+
+  # module.ec2_scheduler.aws_scheduler_schedule.ec2_start will be destroyed
+  # (because aws_scheduler_schedule.ec2_start is not in configuration)
+  - resource "aws_scheduler_schedule" "ec2_start" {
+      - arn                          = "arn:aws:scheduler:ap-southeast-1:315998192499:schedule/openclaw-shared-ec2-scheduler/openclaw-shared-ec2-start" -> null
+      - group_name                   = "openclaw-shared-ec2-scheduler" -> null
+      - id                           = "openclaw-shared-ec2-scheduler/openclaw-shared-ec2-start" -> null
+      - name                         = "openclaw-shared-ec2-start" -> null
+      - schedule_expression          = "cron(0 10 * * ? *)" -> null
+      - schedule_expression_timezone = "Asia/Ho_Chi_Minh" -> null
+      - state                        = "ENABLED" -> null
+        # (5 unchanged attributes hidden)
+
+      - flexible_time_window {
+          - maximum_window_in_minutes = 0 -> null
+          - mode                      = "OFF" -> null
+        }
+
+      - target {
+          - arn      = "arn:aws:scheduler:::aws-sdk:ec2:startInstances" -> null
+          - input    = jsonencode(
+                {
+                  - InstanceIds = [
+                      - "i-04285434037794e84",
+                    ]
+                }
+            ) -> null
+          - role_arn = "arn:aws:iam::315998192499:role/openclaw-shared-ec2-scheduler-role" -> null
+
+          - retry_policy {
+              - maximum_event_age_in_seconds = 86400 -> null
+              - maximum_retry_attempts       = 3 -> null
+            }
+        }
+    }
+
+  # module.ec2_scheduler.aws_scheduler_schedule.ec2_stop will be destroyed
+  # (because aws_scheduler_schedule.ec2_stop is not in configuration)
+  - resource "aws_scheduler_schedule" "ec2_stop" {
+      - arn                          = "arn:aws:scheduler:ap-southeast-1:315998192499:schedule/openclaw-shared-ec2-scheduler/openclaw-shared-ec2-stop" -> null
+      - group_name                   = "openclaw-shared-ec2-scheduler" -> null
+      - id                           = "openclaw-shared-ec2-scheduler/openclaw-shared-ec2-stop" -> null
+      - name                         = "openclaw-shared-ec2-stop" -> null
+      - schedule_expression          = "cron(0 22 * * ? *)" -> null
+      - schedule_expression_timezone = "Asia/Ho_Chi_Minh" -> null
+      - state                        = "ENABLED" -> null
+        # (5 unchanged attributes hidden)
+
+      - flexible_time_window {
+          - maximum_window_in_minutes = 0 -> null
+          - mode                      = "OFF" -> null
+        }
+
+      - target {
+          - arn      = "arn:aws:scheduler:::aws-sdk:ec2:stopInstances" -> null
+          - input    = jsonencode(
+                {
+                  - InstanceIds = [
+                      - "i-04285434037794e84",
+                    ]
+                }
+            ) -> null
+          - role_arn = "arn:aws:iam::315998192499:role/openclaw-shared-ec2-scheduler-role" -> null
+
+          - retry_policy {
+              - maximum_event_age_in_seconds = 86400 -> null
+              - maximum_retry_attempts       = 3 -> null
+            }
+        }
+    }
+
+  # module.ec2_scheduler.aws_scheduler_schedule_group.ec2 will be destroyed
+  # (because aws_scheduler_schedule_group.ec2 is not in configuration)
+  - resource "aws_scheduler_schedule_group" "ec2" {
+      - arn                    = "arn:aws:scheduler:ap-southeast-1:315998192499:schedule-group/openclaw-shared-ec2-scheduler" -> null
+      - creation_date          = "2026-02-22T14:16:52Z" -> null
+      - id                     = "openclaw-shared-ec2-scheduler" -> null
+      - last_modification_date = "2026-02-22T14:16:52Z" -> null
+      - name                   = "openclaw-shared-ec2-scheduler" -> null
+      - state                  = "ACTIVE" -> null
+      - tags                   = {
+          - "Name" = "openclaw-shared-ec2-scheduler"
+        } -> null
+      - tags_all               = {
+          - "Name" = "openclaw-shared-ec2-scheduler"
+        } -> null
+        # (1 unchanged attribute hidden)
+    }
+
+Plan: 0 to add, 0 to change, 5 to destroy.
+
+Changes to Outputs:
+  ~ public_ip         = "13.250.120.119" -> "13.212.252.177"
+
+─────────────────────────────────────────────────────────────────────────────
+
+Note: You didn't use the -out option to save this plan, so Terraform can't
+guarantee to take exactly these actions if you run "terraform apply" now.

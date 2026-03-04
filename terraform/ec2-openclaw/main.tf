@@ -132,14 +132,8 @@ EOF
     volume_size = 20
     volume_type = "gp3"
   }
-}
 
-# EC2 Auto Stop/Start Scheduler (10 PM stop, 10 AM start — ICT timezone)
-module "ec2_scheduler" {
-  source = "../modules/ec2-scheduler"
-
-  project_name = var.project_name
-  environment  = var.environment
-  instance_id  = aws_instance.openclaw.id
-  instance_arn = aws_instance.openclaw.arn
+  lifecycle {
+    ignore_changes = [ami]
+  }
 }
