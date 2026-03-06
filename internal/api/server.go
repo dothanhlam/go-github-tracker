@@ -80,6 +80,10 @@ func (s *Server) setupRoutes() {
 		r.Get("/{id}/members/{username}/commits", teamsHandler.GetMemberCommits)
 		r.Get("/{id}/members/{username}/comments", teamsHandler.GetMemberComments)
 	})
+
+	// Serve the dashboard static files from web/ directory
+	fs := http.FileServer(http.Dir("web"))
+	s.router.Handle("/*", fs)
 }
 
 // Handler returns the HTTP handler
