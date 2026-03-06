@@ -124,6 +124,16 @@ func (c *Collector) collectRepository(owner, repo string) (int, error) {
 		}
 	}
 
+	// Also process commits
+	if err := c.processRepositoryCommits(owner, repo, since); err != nil {
+		fmt.Printf("  ⚠️  Failed to process commits: %v\n", err)
+	}
+
+	// Also process comments
+	if err := c.processRepositoryComments(owner, repo, since); err != nil {
+		fmt.Printf("  ⚠️  Failed to process comments: %v\n", err)
+	}
+
 	// Update last collection timestamp after successful run
 	if err := c.store.UpdateLastCollectionTime(repoFullName, time.Now()); err != nil {
 		fmt.Printf("  ⚠️  Failed to update collection timestamp: %v\n", err)
@@ -136,7 +146,7 @@ func (c *Collector) collectRepository(owner, repo string) (int, error) {
 }
 
 // getCollectionSince determines the start time for PR collection.
-// On first run: uses COLLECTION_LOOKBACK_DAYS (default 90).
+// On first run: uses COLLECTION_LOOKBACK_DAYS (default 7).
 // On subsequent runs: uses the last recorded collection timestamp.
 func (c *Collector) getCollectionSince(repoFullName string) (time.Time, string, error) {
 	lastCollected, err := c.store.GetLastCollectionTime(repoFullName)
@@ -255,4 +265,137 @@ func (c *Collector) processPR(
 	metric.ConversationCount = countConversations(comments)
 
 	return metric
+}
+
+// processRepositoryCommits collects and stores commits for a repository
+func (c *Collector) processRepositoryCommits(owner, repo string, since time.Time) error {
+	repoFullName := fmt.Sprintf("%s/%s", owner, repo)
+	commits, err := c.github.FetchCommits(owner, repo, since)
+	if err != nil {
+		return err
+	}
+
+	processedCount := 0
+	for _, commit := range commits {
+		// author can be nil sometimes
+		var author string
+		if commit.Author != nil && commit.Author.Login != nil {
+			author = *commit.Author.Login
+		} else if commit.Commit != nil && commit.Commit.Author != nil && commit.Commit.Author.Name != nil {
+			author = *commit.Commit.Author.Name
+		} else {
+			continue // skip if we can't identify author
+		}
+
+		if !c.teamMgr.IsMember(author) {
+			continue
+		}
+
+		teams := c.teamMgr.GetTeamsForUser(author)
+		for _, teamID := range teams {
+			var createdAt time.Time
+			if commit.Commit != nil && commit.Commit.Author != nil {
+				createdAt = commit.Commit.Author.GetDate().Time
+			}
+
+			metric := &database.CommitMetric{
+				TeamID:      teamID,
+				Repository:  repoFullName,
+				CommitHash:  commit.GetSHA(),
+				Author:      author,
+				Message:     commit.Commit.GetMessage(),
+				CreatedAt:   createdAt,
+				CreatedDate: &createdAt,
+			}
+			if err := c.store.UpsertCommitMetric(metric); err != nil {
+				fmt.Printf("  ⚠️  Failed to store commit %s: %v\n", commit.GetSHA(), err)
+				continue
+			}
+			processedCount++
+		}
+	}
+
+	fmt.Printf("  ✓ Processed %d commits for team members\n", processedCount)
+	return nil
+}
+
+// processRepositoryComments collects and stores comments for a repository
+func (c *Collector) processRepositoryComments(owner, repo string, since time.Time) error {
+	repoFullName := fmt.Sprintf("%s/%s", owner, repo)
+
+	// Issue comments
+	issueComments, err := c.github.FetchIssueComments(owner, repo, since)
+	if err != nil {
+		return err
+	}
+
+	processedCount := 0
+	for _, comment := range issueComments {
+		if comment.User == nil || comment.User.Login == nil {
+			continue
+		}
+		author := *comment.User.Login
+		if !c.teamMgr.IsMember(author) {
+			continue
+		}
+
+		teams := c.teamMgr.GetTeamsForUser(author)
+		for _, teamID := range teams {
+			createdAt := comment.GetCreatedAt().Time
+			metric := &database.CommentMetric{
+				TeamID:      teamID,
+				Repository:  repoFullName,
+				CommentID:   comment.GetID(),
+				Author:      author,
+				Body:        comment.GetBody(),
+				CreatedAt:   createdAt,
+				CreatedDate: &createdAt,
+				CommentType: "issue",
+			}
+			if err := c.store.UpsertCommentMetric(metric); err != nil {
+				fmt.Printf("  ⚠️  Failed to store issue comment %d: %v\n", comment.GetID(), err)
+				continue
+			}
+			processedCount++
+		}
+	}
+
+	// Commit comments
+	commitComments, err := c.github.FetchCommitComments(owner, repo, since)
+	if err != nil {
+		return err
+	}
+
+	for _, comment := range commitComments {
+		if comment.User == nil || comment.User.Login == nil {
+			continue
+		}
+		author := *comment.User.Login
+		if !c.teamMgr.IsMember(author) {
+			continue
+		}
+
+		teams := c.teamMgr.GetTeamsForUser(author)
+		for _, teamID := range teams {
+			createdAt := comment.GetCreatedAt().Time
+			metric := &database.CommentMetric{
+				TeamID:      teamID,
+				Repository:  repoFullName,
+				CommentID:   comment.GetID(),
+				Author:      author,
+				Body:        comment.GetBody(),
+				CreatedAt:   createdAt,
+				CreatedDate: &createdAt,
+				CommentType: "commit",
+			}
+			if err := c.store.UpsertCommentMetric(metric); err != nil {
+				fmt.Printf("  ⚠️  Failed to store commit comment %d: %v\n", comment.GetID(), err)
+				continue
+			}
+			processedCount++
+		}
+	}
+
+	fmt.Printf("  ✓ Processed %d overall comments for team members\n", processedCount)
+	return nil
 }

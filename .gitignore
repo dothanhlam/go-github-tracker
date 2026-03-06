@@ -70,3 +70,5 @@ logs/
 
 data/
 dummy.db
+
+.agent/skills/

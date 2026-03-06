@@ -154,9 +154,9 @@ GITHUB_PAT=ghp_your_personal_access_token_here
 DB_URL=postgres://user:password@localhost:5432/dora_metrics?sslmode=disable
 
 # Collection Configuration
-# Limit PR collection to last N days (default: 90)
+# Limit PR collection to last N days (default: 7)
 # Prevents performance issues with large repositories
-COLLECTION_LOOKBACK_DAYS=90
+COLLECTION_LOOKBACK_DAYS=7
 
 # Team Configuration (JSON array)
 TEAM_CONFIG_JSON='[
@@ -327,7 +327,7 @@ Configure these in the Lambda function settings:
 - `DB_URL` - PostgreSQL connection string
 - `TEAM_CONFIG_JSON` - Team configuration JSON
 - `REPOSITORIES` - Comma-separated list of repositories
-- `COLLECTION_LOOKBACK_DAYS` - Number of days to look back (default: 90, prevents performance issues)
+- `COLLECTION_LOOKBACK_DAYS` - Number of days to look back (default: 7, prevents performance issues)
 
 ---
 

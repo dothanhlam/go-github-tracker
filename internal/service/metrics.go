@@ -419,3 +419,223 @@ func (s *MetricsService) GetKnowledgeSharing(teamID int, startDate, endDate time
 		Metrics: metrics,
 	}, nil
 }
+
+// CommitActivityMetric represents commit metrics for a period
+type CommitActivityMetric struct {
+	Period       string `json:"period"`
+	CommitsCount int    `json:"commits_count"`
+}
+
+// CommitActivityResponse represents the API response for commit activity
+type CommitActivityResponse struct {
+	TeamID   int                    `json:"team_id"`
+	TeamName string                 `json:"team_name"`
+	Username string                 `json:"username,omitempty"`
+	Period   Period                 `json:"period"`
+	Metrics  []CommitActivityMetric `json:"metrics"`
+}
+
+// CommentActivityMetric represents comment metrics for a period
+type CommentActivityMetric struct {
+	Period        string `json:"period"`
+	CommentsCount int    `json:"comments_count"`
+	CommentType   string `json:"comment_type"`
+}
+
+// CommentActivityResponse represents the API response for comment activity
+type CommentActivityResponse struct {
+	TeamID   int                     `json:"team_id"`
+	TeamName string                  `json:"team_name"`
+	Username string                  `json:"username,omitempty"`
+	Period   Period                  `json:"period"`
+	Metrics  []CommentActivityMetric `json:"metrics"`
+}
+
+// getTeamName is a helper
+func (s *MetricsService) getTeamName(teamID int) (string, error) {
+	var teamName string
+	err := s.db.QueryRow("SELECT name FROM teams WHERE id = ?", teamID).Scan(&teamName)
+	if err == sql.ErrNoRows {
+		return "", fmt.Errorf("team not found")
+	}
+	if err != nil {
+		return "", fmt.Errorf("failed to get team: %w", err)
+	}
+	return teamName, nil
+}
+
+func getWeekStr(t time.Time) string {
+	year, week := t.ISOWeek()
+	return fmt.Sprintf("%d-%02d", year, week)
+}
+
+// GetTeamCommits returns commit metrics for a team
+func (s *MetricsService) GetTeamCommits(teamID int, startDate, endDate time.Time) (*CommitActivityResponse, error) {
+	teamName, err := s.getTeamName(teamID)
+	if err != nil {
+		return nil, err
+	}
+
+	query := `
+		SELECT 
+			week,
+			commits_count
+		FROM view_team_commit_velocity
+		WHERE team_id = ?
+			AND week >= ?
+			AND week <= ?
+		ORDER BY week
+	`
+
+	rows, err := s.db.Query(query, teamID, getWeekStr(startDate), getWeekStr(endDate))
+	if err != nil {
+		return nil, fmt.Errorf("failed to query commits: %w", err)
+	}
+	defer rows.Close()
+
+	var metrics []CommitActivityMetric
+	for rows.Next() {
+		var metric CommitActivityMetric
+		if err := rows.Scan(&metric.Period, &metric.CommitsCount); err != nil {
+			return nil, fmt.Errorf("failed to scan commits: %w", err)
+		}
+		metrics = append(metrics, metric)
+	}
+
+	return &CommitActivityResponse{
+		TeamID:   teamID,
+		TeamName: teamName,
+		Period: Period{Start: startDate.Format(time.RFC3339), End: endDate.Format(time.RFC3339)},
+		Metrics:  metrics,
+	}, nil
+}
+
+// GetTeamComments returns comment metrics for a team
+func (s *MetricsService) GetTeamComments(teamID int, startDate, endDate time.Time) (*CommentActivityResponse, error) {
+	teamName, err := s.getTeamName(teamID)
+	if err != nil {
+		return nil, err
+	}
+
+	query := `
+		SELECT 
+			week,
+			comments_count,
+			comment_type
+		FROM view_team_comment_activity
+		WHERE team_id = ?
+			AND week >= ?
+			AND week <= ?
+		ORDER BY week, comment_type
+	`
+
+	rows, err := s.db.Query(query, teamID, getWeekStr(startDate), getWeekStr(endDate))
+	if err != nil {
+		return nil, fmt.Errorf("failed to query comments: %w", err)
+	}
+	defer rows.Close()
+
+	var metrics []CommentActivityMetric
+	for rows.Next() {
+		var metric CommentActivityMetric
+		if err := rows.Scan(&metric.Period, &metric.CommentsCount, &metric.CommentType); err != nil {
+			return nil, fmt.Errorf("failed to scan comments: %w", err)
+		}
+		metrics = append(metrics, metric)
+	}
+
+	return &CommentActivityResponse{
+		TeamID:   teamID,
+		TeamName: teamName,
+		Period: Period{Start: startDate.Format(time.RFC3339), End: endDate.Format(time.RFC3339)},
+		Metrics:  metrics,
+	}, nil
+}
+
+// GetMemberCommits returns commit metrics for a member
+func (s *MetricsService) GetMemberCommits(teamID int, username string, startDate, endDate time.Time) (*CommitActivityResponse, error) {
+	teamName, err := s.getTeamName(teamID)
+	if err != nil {
+		return nil, err
+	}
+
+	query := `
+		SELECT 
+			week,
+			commits_count
+		FROM view_member_commit_velocity
+		WHERE team_id = ?
+			AND github_username = ?
+			AND week >= ?
+			AND week <= ?
+		ORDER BY week
+	`
+
+	rows, err := s.db.Query(query, teamID, username, getWeekStr(startDate), getWeekStr(endDate))
+	if err != nil {
+		return nil, fmt.Errorf("failed to query member commits: %w", err)
+	}
+	defer rows.Close()
+
+	var metrics []CommitActivityMetric
+	for rows.Next() {
+		var metric CommitActivityMetric
+		if err := rows.Scan(&metric.Period, &metric.CommitsCount); err != nil {
+			return nil, fmt.Errorf("failed to scan member commits: %w", err)
+		}
+		metrics = append(metrics, metric)
+	}
+
+	return &CommitActivityResponse{
+		TeamID:   teamID,
+		TeamName: teamName,
+		Username: username,
+		Period: Period{Start: startDate.Format(time.RFC3339), End: endDate.Format(time.RFC3339)},
+		Metrics:  metrics,
+	}, nil
+}
+
+// GetMemberComments returns comment metrics for a member
+func (s *MetricsService) GetMemberComments(teamID int, username string, startDate, endDate time.Time) (*CommentActivityResponse, error) {
+	teamName, err := s.getTeamName(teamID)
+	if err != nil {
+		return nil, err
+	}
+
+	query := `
+		SELECT 
+			week,
+			comments_count,
+			comment_type
+		FROM view_member_comment_activity
+		WHERE team_id = ?
+			AND github_username = ?
+			AND week >= ?
+			AND week <= ?
+		ORDER BY week, comment_type
+	`
+
+	rows, err := s.db.Query(query, teamID, username, getWeekStr(startDate), getWeekStr(endDate))
+	if err != nil {
+		return nil, fmt.Errorf("failed to query member comments: %w", err)
+	}
+	defer rows.Close()
+
+	var metrics []CommentActivityMetric
+	for rows.Next() {
+		var metric CommentActivityMetric
+		if err := rows.Scan(&metric.Period, &metric.CommentsCount, &metric.CommentType); err != nil {
+			return nil, fmt.Errorf("failed to scan member comments: %w", err)
+		}
+		metrics = append(metrics, metric)
+	}
+
+	return &CommentActivityResponse{
+		TeamID:   teamID,
+		TeamName: teamName,
+		Username: username,
+		Period: Period{Start: startDate.Format(time.RFC3339), End: endDate.Format(time.RFC3339)},
+		Metrics:  metrics,
+	}, nil
+}
+
