@@ -153,14 +153,14 @@ func (s *MetricsService) GetTeamVelocity(teamID int, startDate, endDate time.Tim
 	// Query velocity metrics
 	query := `
 		SELECT 
-			week_start,
+			week,
 			prs_merged,
 			avg_cycle_time_hours
 		FROM view_team_velocity
 		WHERE team_id = ?
-			AND week_start >= ?
-			AND week_start <= ?
-		ORDER BY week_start
+			AND week >= ?
+			AND week <= ?
+		ORDER BY week
 	`
 
 	rows, err := s.db.Query(query, teamID, startDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
@@ -205,12 +205,12 @@ func (s *MetricsService) GetTeamLeadTime(teamID int, startDate, endDate time.Tim
 		return nil, fmt.Errorf("failed to get team: %w", err)
 	}
 
-	// Query lead time metrics
+	// Query lead time metrics (SQLite uses avg/max as approximation for median/p95)
 	query := `
 		SELECT 
 			month,
-			median_lead_time_hours,
-			p95_lead_time_hours
+			avg_lead_time_hours,
+			max_lead_time_hours
 		FROM view_dora_lead_time
 		WHERE team_id = ?
 			AND month >= ?
@@ -263,20 +263,20 @@ func (s *MetricsService) GetReviewTurnaround(teamID int, startDate, endDate time
 		return nil, fmt.Errorf("failed to get team: %w", err)
 	}
 
-	// Query review turnaround metrics
+	// Query review turnaround metrics (SQLite uses avg/min as approximation for avg/median)
 	query := `
 		SELECT 
-			week_start,
+			month,
 			avg_turnaround_hours,
-			median_turnaround_hours
+			min_turnaround_hours
 		FROM view_review_turnaround
 		WHERE team_id = ?
-			AND week_start >= ?
-			AND week_start <= ?
-		ORDER BY week_start
+			AND month >= ?
+			AND month <= ?
+		ORDER BY month
 	`
 
-	rows, err := s.db.Query(query, teamID, startDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
+	rows, err := s.db.Query(query, teamID, startDate.Format("2006-01"), endDate.Format("2006-01"))
 	if err != nil {
 		return nil, fmt.Errorf("failed to query review turnaround: %w", err)
 	}
@@ -324,18 +324,18 @@ func (s *MetricsService) GetReviewEngagement(teamID int, startDate, endDate time
 	// Query review engagement metrics
 	query := `
 		SELECT 
-			week_start,
-			total_reviews,
-			unique_reviewers,
-			avg_reviews_per_pr
+			month,
+			pr_count,
+			pr_count,
+			avg_reviewers_per_pr
 		FROM view_review_engagement
 		WHERE team_id = ?
-			AND week_start >= ?
-			AND week_start <= ?
-		ORDER BY week_start
+			AND month >= ?
+			AND month <= ?
+		ORDER BY month
 	`
 
-	rows, err := s.db.Query(query, teamID, startDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
+	rows, err := s.db.Query(query, teamID, startDate.Format("2006-01"), endDate.Format("2006-01"))
 	if err != nil {
 		return nil, fmt.Errorf("failed to query review engagement: %w", err)
 	}
@@ -380,17 +380,17 @@ func (s *MetricsService) GetKnowledgeSharing(teamID int, startDate, endDate time
 	// Query knowledge sharing metrics
 	query := `
 		SELECT 
-			week_start,
-			cross_team_reviews,
-			knowledge_sharing_score
+			month,
+			total_external_reviews,
+			external_reviewer_rate
 		FROM view_knowledge_sharing
 		WHERE team_id = ?
-			AND week_start >= ?
-			AND week_start <= ?
-		ORDER BY week_start
+			AND month >= ?
+			AND month <= ?
+		ORDER BY month
 	`
 
-	rows, err := s.db.Query(query, teamID, startDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
+	rows, err := s.db.Query(query, teamID, startDate.Format("2006-01"), endDate.Format("2006-01"))
 	if err != nil {
 		return nil, fmt.Errorf("failed to query knowledge sharing: %w", err)
 	}
