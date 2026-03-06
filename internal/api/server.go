@@ -73,6 +73,12 @@ func (s *Server) setupRoutes() {
 		r.Get("/{id}/review-turnaround", teamsHandler.GetReviewTurnaround)
 		r.Get("/{id}/review-engagement", teamsHandler.GetReviewEngagement)
 		r.Get("/{id}/knowledge-sharing", teamsHandler.GetKnowledgeSharing)
+
+		// New endpoints for commits and comments
+		r.Get("/{id}/commits", teamsHandler.GetCommits)
+		r.Get("/{id}/comments", teamsHandler.GetComments)
+		r.Get("/{id}/members/{username}/commits", teamsHandler.GetMemberCommits)
+		r.Get("/{id}/members/{username}/comments", teamsHandler.GetMemberComments)
 	})
 }
 

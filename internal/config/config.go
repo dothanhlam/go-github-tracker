@@ -85,7 +85,7 @@ func Load() (*Config, error) {
 		DBDriver:     getEnv("DB_DRIVER", "sqlite3"),
 		DBURL:        getEnv("DB_URL", ""),
 		GitHubPAT:    getEnv("GITHUB_PAT", ""),
-		LookbackDays: getEnvInt("COLLECTION_LOOKBACK_DAYS", 90),
+		LookbackDays: getEnvInt("COLLECTION_LOOKBACK_DAYS", 7),
 	}
 
 	// --- Resolve credentials from AWS Secrets Manager (Lambda path) ---

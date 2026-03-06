@@ -104,3 +104,59 @@ type KnowledgeSharing struct {
 	PRCount                 int     `db:"pr_count"`
 }
 
+// CommitMetric represents Commit metrics
+type CommitMetric struct {
+	ID          int        `db:"id"`
+	TeamID      int        `db:"team_id"`
+	Repository  string     `db:"repository"`
+	CommitHash  string     `db:"commit_hash"`
+	Author      string     `db:"author"`
+	Message     string     `db:"message"`
+	CreatedAt   time.Time  `db:"created_at"`
+	CreatedDate *time.Time `db:"created_date"`
+}
+
+// CommentMetric represents Comment metrics
+type CommentMetric struct {
+	ID          int        `db:"id"`
+	TeamID      int        `db:"team_id"`
+	Repository  string     `db:"repository"`
+	CommentID   int64      `db:"comment_id"`
+	Author      string     `db:"author"`
+	Body        string     `db:"body"`
+	CreatedAt   time.Time  `db:"created_at"`
+	CreatedDate *time.Time `db:"created_date"`
+	CommentType string     `db:"comment_type"`
+}
+
+// TeamCommitVelocity represents the view_team_commit_velocity view
+type TeamCommitVelocity struct {
+	TeamID       int    `db:"team_id"`
+	Week         string `db:"week"`
+	CommitsCount int    `db:"commits_count"`
+}
+
+// TeamCommentActivity represents the view_team_comment_activity view
+type TeamCommentActivity struct {
+	TeamID        int    `db:"team_id"`
+	Week          string `db:"week"`
+	CommentsCount int    `db:"comments_count"`
+	CommentType   string `db:"comment_type"`
+}
+
+// MemberCommitVelocity represents the view_member_commit_velocity view
+type MemberCommitVelocity struct {
+	TeamID         int    `db:"team_id"`
+	GitHubUsername string `db:"github_username"`
+	Week           string `db:"week"`
+	CommitsCount   int    `db:"commits_count"`
+}
+
+// MemberCommentActivity represents the view_member_comment_activity view
+type MemberCommentActivity struct {
+	TeamID         int    `db:"team_id"`
+	GitHubUsername string `db:"github_username"`
+	Week           string `db:"week"`
+	CommentsCount  int    `db:"comments_count"`
+	CommentType    string `db:"comment_type"`
+}

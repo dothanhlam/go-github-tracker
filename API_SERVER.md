@@ -267,6 +267,130 @@ curl -H "X-API-Key: test-key" \
 
 ---
 
+### Team Commits
+```
+GET /api/v1/teams/{id}/commits
+```
+
+**Query Parameters**: `start_date`, `end_date`
+
+**Response**:
+```json
+{
+  "team_id": 1,
+  "team_name": "Engineering Team",
+  "period": {...},
+  "metrics": [
+    {
+      "period": "2026-06",
+      "commits_count": 42
+    }
+  ]
+}
+```
+
+**Example**:
+```bash
+curl -H "X-API-Key: test-key" \
+  http://localhost:8080/api/v1/teams/1/commits
+```
+
+---
+
+### Team Comments
+```
+GET /api/v1/teams/{id}/comments
+```
+
+**Query Parameters**: `start_date`, `end_date`
+
+**Response**:
+```json
+{
+  "team_id": 1,
+  "team_name": "Engineering Team",
+  "period": {...},
+  "metrics": [
+    {
+      "period": "2026-06",
+      "comments_count": 15,
+      "comment_type": "issue"
+    }
+  ]
+}
+```
+
+**Example**:
+```bash
+curl -H "X-API-Key: test-key" \
+  http://localhost:8080/api/v1/teams/1/comments
+```
+
+---
+
+### Member Commits
+```
+GET /api/v1/teams/{id}/members/{username}/commits
+```
+
+**Query Parameters**: `start_date`, `end_date`
+
+**Response**:
+```json
+{
+  "team_id": 1,
+  "team_name": "Engineering Team",
+  "username": "alice",
+  "period": {...},
+  "metrics": [
+    {
+      "period": "2026-06",
+      "commits_count": 12
+    }
+  ]
+}
+```
+
+**Example**:
+```bash
+curl -H "X-API-Key: test-key" \
+  http://localhost:8080/api/v1/teams/1/members/alice/commits
+```
+
+---
+
+### Member Comments
+```
+GET /api/v1/teams/{id}/members/{username}/comments
+```
+
+**Query Parameters**: `start_date`, `end_date`
+
+**Response**:
+```json
+{
+  "team_id": 1,
+  "team_name": "Engineering Team",
+  "username": "alice",
+  "period": {...},
+  "metrics": [
+    {
+      "period": "2026-06",
+      "comments_count": 5,
+      "comment_type": "commit"
+    }
+  ]
+}
+```
+
+**Example**:
+```bash
+curl -H "X-API-Key: test-key" \
+  http://localhost:8080/api/v1/teams/1/members/alice/comments
+```
+
+---
+
 ## Error Responses
 
 All errors follow this format:

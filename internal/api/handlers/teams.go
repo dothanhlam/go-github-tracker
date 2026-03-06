@@ -151,6 +151,110 @@ func (h *TeamsHandler) GetKnowledgeSharing(w http.ResponseWriter, r *http.Reques
 	response.JSON(w, http.StatusOK, metrics)
 }
 
+// GetCommits handles GET /api/v1/teams/{id}/commits
+func (h *TeamsHandler) GetCommits(w http.ResponseWriter, r *http.Request) {
+	teamID, err := h.getTeamID(r)
+	if err != nil {
+		response.BadRequest(w, "Invalid team ID")
+		return
+	}
+
+	startDate, endDate, _ := h.parseDateParams(r)
+
+	metrics, err := h.metricsService.GetTeamCommits(teamID, startDate, endDate)
+	if err != nil {
+		if err.Error() == "team not found" {
+			response.NotFound(w, "Team not found")
+			return
+		}
+		response.InternalError(w, "Failed to fetch commit metrics")
+		return
+	}
+
+	response.JSON(w, http.StatusOK, metrics)
+}
+
+// GetComments handles GET /api/v1/teams/{id}/comments
+func (h *TeamsHandler) GetComments(w http.ResponseWriter, r *http.Request) {
+	teamID, err := h.getTeamID(r)
+	if err != nil {
+		response.BadRequest(w, "Invalid team ID")
+		return
+	}
+
+	startDate, endDate, _ := h.parseDateParams(r)
+
+	metrics, err := h.metricsService.GetTeamComments(teamID, startDate, endDate)
+	if err != nil {
+		if err.Error() == "team not found" {
+			response.NotFound(w, "Team not found")
+			return
+		}
+		response.InternalError(w, "Failed to fetch comment metrics")
+		return
+	}
+
+	response.JSON(w, http.StatusOK, metrics)
+}
+
+// GetMemberCommits handles GET /api/v1/teams/{id}/members/{username}/commits
+func (h *TeamsHandler) GetMemberCommits(w http.ResponseWriter, r *http.Request) {
+	teamID, err := h.getTeamID(r)
+	if err != nil {
+		response.BadRequest(w, "Invalid team ID")
+		return
+	}
+	
+	username := chi.URLParam(r, "username")
+	if username == "" {
+		response.BadRequest(w, "Invalid username")
+		return
+	}
+
+	startDate, endDate, _ := h.parseDateParams(r)
+
+	metrics, err := h.metricsService.GetMemberCommits(teamID, username, startDate, endDate)
+	if err != nil {
+		if err.Error() == "team not found" {
+			response.NotFound(w, "Team not found")
+			return
+		}
+		response.InternalError(w, "Failed to fetch member commit metrics")
+		return
+	}
+
+	response.JSON(w, http.StatusOK, metrics)
+}
+
+// GetMemberComments handles GET /api/v1/teams/{id}/members/{username}/comments
+func (h *TeamsHandler) GetMemberComments(w http.ResponseWriter, r *http.Request) {
+	teamID, err := h.getTeamID(r)
+	if err != nil {
+		response.BadRequest(w, "Invalid team ID")
+		return
+	}
+
+	username := chi.URLParam(r, "username")
+	if username == "" {
+		response.BadRequest(w, "Invalid username")
+		return
+	}
+
+	startDate, endDate, _ := h.parseDateParams(r)
+
+	metrics, err := h.metricsService.GetMemberComments(teamID, username, startDate, endDate)
+	if err != nil {
+		if err.Error() == "team not found" {
+			response.NotFound(w, "Team not found")
+			return
+		}
+		response.InternalError(w, "Failed to fetch member comment metrics")
+		return
+	}
+
+	response.JSON(w, http.StatusOK, metrics)
+}
+
 // Helper functions
 
 func (h *TeamsHandler) getTeamID(r *http.Request) (int, error) {

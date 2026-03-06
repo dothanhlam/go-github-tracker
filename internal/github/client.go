@@ -141,3 +141,116 @@ func (c *Client) checkRateLimit() error {
 
 	return nil
 }
+
+// FetchCommits fetches commits from a repository since a given date
+func (c *Client) FetchCommits(owner, repo string, since time.Time) ([]*github.RepositoryCommit, error) {
+	fmt.Printf("  📥 Fetching Commits from %s/%s (since %s)...\n", owner, repo, since.Format("2006-01-02"))
+
+	var allCommits []*github.RepositoryCommit
+	opts := &github.CommitsListOptions{
+		Since: since,
+		ListOptions: github.ListOptions{
+			PerPage: 100,
+		},
+	}
+
+	for {
+		commits, resp, err := c.client.Repositories.ListCommits(c.ctx, owner, repo, opts)
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch commits: %w", err)
+		}
+
+		allCommits = append(allCommits, commits...)
+
+		if resp.NextPage == 0 {
+			break
+		}
+		opts.Page = resp.NextPage
+
+		if err := c.checkRateLimit(); err != nil {
+			return nil, err
+		}
+	}
+
+	fmt.Printf("  ✓ Fetched %d commits\n", len(allCommits))
+	return allCommits, nil
+}
+
+// FetchIssueComments fetches issue comments from a repository since a given date
+func (c *Client) FetchIssueComments(owner, repo string, since time.Time) ([]*github.IssueComment, error) {
+	fmt.Printf("  📥 Fetching Issue Comments from %s/%s (since %s)...\n", owner, repo, since.Format("2006-01-02"))
+
+	var allComments []*github.IssueComment
+	opts := &github.IssueListCommentsOptions{
+		Since: &since,
+		Sort:  github.String("updated"),
+		Direction: github.String("desc"),
+		ListOptions: github.ListOptions{
+			PerPage: 100,
+		},
+	}
+
+	for {
+		// Pass 0 to fetch comments for the entire repository, rather than a specific issue
+		comments, resp, err := c.client.Issues.ListComments(c.ctx, owner, repo, 0, opts)
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch issue comments: %w", err)
+		}
+
+		// Filter comments by date
+		for _, comment := range comments {
+			if comment.UpdatedAt != nil && comment.UpdatedAt.Before(since) {
+				fmt.Printf("  ✓ Fetched %d issue comments within lookback window\n", len(allComments))
+				return allComments, nil
+			}
+			allComments = append(allComments, comment)
+		}
+
+		if resp.NextPage == 0 {
+			break
+		}
+		opts.Page = resp.NextPage
+
+		if err := c.checkRateLimit(); err != nil {
+			return nil, err
+		}
+	}
+
+	fmt.Printf("  ✓ Fetched %d issue comments\n", len(allComments))
+	return allComments, nil
+}
+
+// FetchCommitComments fetches commit comments from a repository
+func (c *Client) FetchCommitComments(owner, repo string, since time.Time) ([]*github.RepositoryComment, error) {
+	fmt.Printf("  📥 Fetching Commit Comments from %s/%s (since %s)...\n", owner, repo, since.Format("2006-01-02"))
+
+	var allComments []*github.RepositoryComment
+	opts := &github.ListOptions{
+		PerPage: 100,
+	}
+
+	for {
+		comments, resp, err := c.client.Repositories.ListComments(c.ctx, owner, repo, opts)
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch commit comments: %w", err)
+		}
+
+		for _, comment := range comments {
+			if comment.UpdatedAt != nil && !comment.UpdatedAt.Before(since) {
+				allComments = append(allComments, comment)
+			}
+		}
+
+		if resp.NextPage == 0 {
+			break
+		}
+		opts.Page = resp.NextPage
+
+		if err := c.checkRateLimit(); err != nil {
+			return nil, err
+		}
+	}
+
+	fmt.Printf("  ✓ Fetched %d commit comments\n", len(allComments))
+	return allComments, nil
+}

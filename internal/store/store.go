@@ -98,3 +98,53 @@ func (s *Store) UpdateLastCollectionTime(repository string, timestamp time.Time)
 	}
 	return nil
 }
+
+// UpsertCommitMetric inserts or updates a Commit metric (idempotent)
+func (s *Store) UpsertCommitMetric(metric *database.CommitMetric) error {
+	query := `
+		INSERT INTO commit_metrics (
+			team_id, repository, commit_hash, author, message, created_at, created_date
+		) VALUES (
+			?, ?, ?, ?, ?, ?, ?
+		)
+		ON CONFLICT(team_id, repository, commit_hash) DO UPDATE SET
+			message = excluded.message,
+			author = excluded.author
+	`
+
+	_, err := s.db.Exec(query,
+		metric.TeamID, metric.Repository, metric.CommitHash, metric.Author,
+		metric.Message, metric.CreatedAt, metric.CreatedDate,
+	)
+
+	if err != nil {
+		return fmt.Errorf("failed to upsert commit metric: %w", err)
+	}
+
+	return nil
+}
+
+// UpsertCommentMetric inserts or updates a Comment metric (idempotent)
+func (s *Store) UpsertCommentMetric(metric *database.CommentMetric) error {
+	query := `
+		INSERT INTO comment_metrics (
+			team_id, repository, comment_id, author, body, created_at, created_date, comment_type
+		) VALUES (
+			?, ?, ?, ?, ?, ?, ?, ?
+		)
+		ON CONFLICT(team_id, repository, comment_id, comment_type) DO UPDATE SET
+			body = excluded.body,
+			author = excluded.author
+	`
+
+	_, err := s.db.Exec(query,
+		metric.TeamID, metric.Repository, metric.CommentID, metric.Author,
+		metric.Body, metric.CreatedAt, metric.CreatedDate, metric.CommentType,
+	)
+
+	if err != nil {
+		return fmt.Errorf("failed to upsert comment metric: %w", err)
+	}
+
+	return nil
+}
