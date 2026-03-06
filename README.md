@@ -38,11 +38,12 @@ A DORA metrics tracking tool that collects Pull Request data from GitHub to meas
 - Health check endpoint
 - See [API_SERVER.md](API_SERVER.md) for details
 
-✅ **AI-Powered Insights**
-- MCP server integration for AI assistants
-- Natural language queries via SQLite MCP
-- Direct SQL access to all metrics
-- See [MCP-QUICKSTART.md](MCP-QUICKSTART.md) for setup
+✅ **Dashboard** ✨ NEW
+- Bootstrap-based team metrics dashboard
+- Chart.js visualizations for all DORA metrics
+- Team sidebar with click-to-switch
+- API key authentication via browser
+- Served directly from the API server at `/`
 
 ✅ **AWS Deployment Ready**
 - Complete Terraform infrastructure
@@ -61,7 +62,7 @@ A DORA metrics tracking tool that collects Pull Request data from GitHub to meas
 | Phase 2.5: Testing | ✅ Complete | Unit tests, CI/CD with GitHub Actions |
 | Phase 3: SQL Views | ✅ Complete | Pre-built views for metrics analysis |
 | **Phase 3: API** | **✅ Complete** | **REST API with 7 endpoints** |
-| Phase 3.5: MCP | ✅ Working | SQLite MCP server for AI queries |
+| **Phase 5: Dashboard** | **✅ Complete** | **Bootstrap + Chart.js team dashboard** |
 | Phase 4: AWS Deploy | 🚧 Ready | Terraform complete, awaiting deployment |
 | Phase 5: Dashboard | 📋 Planned | Vue.js frontend (future) |
 
@@ -258,10 +259,10 @@ curl -H "X-API-Key: your-key" \
 │   ├── context/            # Architecture, conventions, dependencies
 │   ├── planning/           # Plan, requirements, roadmap
 │   └── workflows/          # Build, test, deploy workflows
-├── cmd/
-│   ├── collector/          # Main collector application
-│   ├── api-server/         # REST API server ✨ NEW
-│   └── mcp-server/         # MCP server (optional)
+├── web/                    # Dashboard frontend ✨ NEW
+│   ├── index.html          # Bootstrap layout
+│   ├── app.js              # Chart.js + API integration
+│   └── style.css           # GitHub-inspired theme
 ├── internal/
 │   ├── api/                # API handlers, middleware ✨ NEW
 │   ├── service/            # Business logic layer ✨ NEW
@@ -269,14 +270,12 @@ curl -H "X-API-Key: your-key" \
 │   ├── github/             # GitHub API client
 │   ├── database/           # Database operations
 │   ├── collector/          # PR collection logic
-│   ├── metrics/            # Metrics calculation
-│   └── mcp/                # MCP resources and tools
+│   └── metrics/            # Metrics calculation
 ├── pkg/                    # Public libraries (if any)
 ├── migrations/             # Database migration scripts
 ├── terraform/              # AWS infrastructure ✨ NEW
 ├── tests/                  # Integration tests
 ├── API_SERVER.md          # API documentation ✨ NEW
-├── MCP-QUICKSTART.md      # MCP setup guide
 └── README.md              # This file
 ```
 
@@ -339,9 +338,8 @@ See [.agent/planning/plan.md](.agent/planning/plan.md) for detailed milestones.
 - ✅ **Phase 2**: Data Collection - GitHub API integration, PR metrics
 - ✅ **Phase 2.5**: Testing & QA - Unit tests, CI/CD with GitHub Actions
 - ✅ **Phase 3**: SQL Views & API - Pre-built views, REST API with 7 endpoints
-- ✅ **Phase 3.5**: MCP Integration - SQLite MCP server for AI queries
+- ✅ **Phase 5**: Dashboard - Bootstrap + Chart.js team metrics dashboard
 - 🚧 **Phase 4**: AWS Deployment - Terraform complete, ready to deploy
-- 📅 **Phase 5**: Dashboard - Vue.js frontend (future)
 
 ---
 
