@@ -72,3 +72,4 @@ data/
 dummy.db
 
 .agent/skills/
+.agent/rules/
