@@ -1,1207 +1,476 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Engineering AI ROI Suite</title>
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  <style>
-    /* ── CSS Variables ──────────────────────────────── */
-    :root {
-      --navy: #0f172a;
-      --slate: #1e293b;
-      --slate-2: #263449;
-      --border: #334155;
-      --cyan: #38bdf8;
-      --cyan-dim: rgba(56, 189, 248, .15);
-      --green: #34d399;
-      --green-dim: rgba(52, 211, 153, .15);
-      --amber: #fbbf24;
-      --red: #f87171;
-      --text: #f8fafc;
-      --muted: #94a3b8;
-      --font: 'Inter', system-ui, -apple-system, sans-serif;
-      --radius: 10px;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html,
-    body {
-      height: 100%;
-    }
-
-    body {
-      background: var(--navy);
-      color: var(--text);
-      font-family: var(--font);
-      display: flex;
-      min-height: 100vh;
-      overflow: hidden;
-    }
-
-    /* ── Sidebar ──────────────────────────────────── */
-    .sidebar {
-      width: 300px;
-      min-width: 260px;
-      background: var(--slate);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      padding: 28px 22px;
-      gap: 26px;
-      overflow-y: auto;
-    }
-
-    .sidebar-logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .sidebar-logo .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--cyan);
-      box-shadow: 0 0 10px var(--cyan);
-    }
-
-    .sidebar-logo h3 {
-      font-size: .85rem;
-      text-transform: uppercase;
-      letter-spacing: .1em;
-      color: var(--cyan);
-    }
-
-    .sidebar-section {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .sidebar-section h4 {
-      font-size: .7rem;
-      text-transform: uppercase;
-      letter-spacing: .1em;
-      color: var(--muted);
-      padding-bottom: 6px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .field-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .field-label {
-      display: flex;
-      justify-content: space-between;
-      font-size: .82rem;
-      color: var(--muted);
-    }
-
-    .field-label .val {
-      color: var(--text);
-      font-weight: 600;
-    }
-
-    input[type="range"] {
-      width: 100%;
-      accent-color: var(--cyan);
-      cursor: pointer;
-      height: 4px;
-    }
-
-    input[type="number"] {
-      width: 100%;
-      background: var(--navy);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text);
-      padding: 9px 12px;
-      font-size: .9rem;
-      outline: none;
-      transition: border .2s;
-    }
-
-    input[type="number"]:focus {
-      border-color: var(--cyan);
-    }
-
-    /* Savings Card */
-    .savings-card {
-      background: linear-gradient(135deg, rgba(56, 189, 248, .12) 0%, rgba(52, 211, 153, .08) 100%);
-      border: 1px solid var(--cyan);
-      border-radius: var(--radius);
-      padding: 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .savings-card .sc-label {
-      font-size: .7rem;
-      text-transform: uppercase;
-      letter-spacing: .1em;
-      color: var(--cyan);
-    }
-
-    .savings-card .sc-value {
-      font-size: 2rem;
-      font-weight: 800;
-      color: var(--green);
-      text-shadow: 0 0 20px rgba(52, 211, 153, .4);
-    }
-
-    .savings-card .sc-sub {
-      font-size: .75rem;
-      color: var(--muted);
-    }
-
-    /* Mini metrics grid inside sidebar */
-    .mini-metrics {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .mini-card {
-      background: var(--navy);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .mini-card .m-label {
-      font-size: .65rem;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      color: var(--muted);
-    }
-
-    .mini-card .m-value {
-      font-size: 1.1rem;
-      font-weight: 800;
-      color: var(--cyan);
-    }
-
-    .mini-card .m-value.green {
-      color: var(--green);
-    }
-
-    .mini-card .m-value.amber {
-      color: var(--amber);
-    }
-
-    /* Director Summary card (inside dashboard) */
-    .director-card {
-      background: linear-gradient(135deg, rgba(56, 189, 248, .07) 0%, rgba(52, 211, 153, .05) 100%);
-      border: 1px solid var(--cyan);
-      border-radius: var(--radius);
-      padding: 22px 26px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .director-card .dc-heading {
-      font-size: .72rem;
-      text-transform: uppercase;
-      letter-spacing: .1em;
-      color: var(--cyan);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .director-card .dc-heading::before {
-      content: '';
-      display: inline-block;
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--cyan);
-      box-shadow: 0 0 8px var(--cyan);
-    }
-
-    .director-card .dc-body {
-      font-size: .95rem;
-      line-height: 1.7;
-      color: var(--text);
-    }
-
-    .director-card .dc-body strong {
-      color: var(--green);
-    }
-
-    .director-card .dc-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-      margin-top: 4px;
-    }
-
-    .dc-kpi {
-      background: var(--navy);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 14px;
-      text-align: center;
-    }
-
-    .dc-kpi .dk-v {
-      font-size: 1.5rem;
-      font-weight: 800;
-      color: var(--green);
-    }
-
-    .dc-kpi .dk-l {
-      font-size: .7rem;
-      color: var(--muted);
-      margin-top: 2px;
-    }
-
-    .metadata-pill {
-      background: var(--navy);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 10px 14px;
-      font-size: .78rem;
-      color: var(--muted);
-      line-height: 1.6;
-    }
-
-    .metadata-pill span {
-      color: var(--text);
-    }
-
-    /* ── Main ────────────────────────────────────── */
-    .main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    /* ── Top Nav ────────────────────────────────── */
-    .top-nav {
-      background: var(--slate);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      padding: 0 32px;
-      gap: 4px;
-      flex-shrink: 0;
-    }
-
-    .nav-brand {
-      margin-right: 28px;
-      font-size: .95rem;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .nav-brand span {
-      color: var(--cyan);
-    }
-
-    .tab {
-      background: none;
-      border: none;
-      color: var(--muted);
-      padding: 20px 24px;
-      font-size: .88rem;
-      font-weight: 600;
-      cursor: pointer;
-      border-bottom: 3px solid transparent;
-      transition: all .2s;
-      letter-spacing: .02em;
-    }
-
-    .tab:hover {
-      color: var(--text);
-    }
-
-    .tab.active {
-      color: var(--cyan);
-      border-bottom-color: var(--cyan);
-    }
-
-    /* ── Dashboards ───────────────────────────── */
-    .dashboard {
-      display: none;
-      flex: 1;
-      overflow-y: auto;
-      padding: 28px 32px;
-      flex-direction: column;
-      gap: 24px;
-    }
-
-    .dashboard.active {
-      display: flex;
-    }
-
-    .dash-header h1 {
-      font-size: 1.6rem;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-
-    .dash-header p {
-      color: var(--muted);
-      font-size: .9rem;
-    }
-
-    /* Stat Cards Row */
-    .stats-row {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .stat-card {
-      background: var(--slate);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px 22px;
-      flex: 1;
-      min-width: 160px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .stat-card.cyan {
-      border-color: var(--cyan);
-      background: var(--cyan-dim);
-    }
-
-    .stat-card.green {
-      border-color: var(--green);
-      background: var(--green-dim);
-    }
-
-    .stat-card .sc-l {
-      font-size: .72rem;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .stat-card .sc-v {
-      font-size: 2rem;
-      font-weight: 800;
-      color: var(--cyan);
-    }
-
-    .stat-card.green .sc-v {
-      color: var(--green);
-    }
-
-    .stat-card .sc-s {
-      font-size: .78rem;
-      color: var(--muted);
-    }
-
-    /* ── ? tooltip badge ── */
-    .tip-icon {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: var(--border);
-      color: var(--text);
-      font-size: .62rem;
-      font-weight: 700;
-      cursor: help;
-      flex-shrink: 0;
-      position: relative;
-      text-transform: none;
-      letter-spacing: 0;
-      line-height: 1;
-      transition: background .15s;
-    }
-
-    .tip-icon:hover {
-      background: var(--cyan);
-      color: var(--navy);
-    }
-
-    .tip-icon::after {
-      content: attr(data-tip);
-      position: absolute;
-      bottom: calc(100% - 10px);
-      left: 50%;
-      transform: translateX(-50%);
-      background: #1e293b;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: .75rem;
-      line-height: 1.55;
-      color: var(--text);
-      white-space: pre-line;
-      width: 300px;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity .18s;
-      z-index: 200;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, .45);
-    }
-
-    .tip-icon::before {
-      content: '';
-      position: absolute;
-      bottom: calc(100% + 4px);
-      left: 50%;
-      transform: translateX(-50%);
-      border: 5px solid transparent;
-      border-top-color: var(--border);
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity .18s;
-      z-index: 201;
-    }
-
-    .tip-icon:hover::after,
-    .tip-icon:hover::before {
-      opacity: 1;
-    }
-
-    /* Chart Panels */
-    .chart-row {
-      display: flex;
-      gap: 20px;
-      flex: 1;
-      min-height: 340px;
-    }
-
-    .chart-panel {
-      background: var(--slate);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 22px;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .chart-panel.full {
-      flex: 1;
-    }
-
-    .chart-title {
-      font-size: .92rem;
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 4px;
-    }
-
-    .chart-sub {
-      font-size: .76rem;
-      color: var(--muted);
-      margin-bottom: 18px;
-    }
-
-    .chart-body {
-      flex: 1;
-      position: relative;
-    }
-
-    /* Legend */
-    .legend {
-      display: flex;
-      gap: 20px;
-      margin-bottom: 14px;
-    }
-
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: .78rem;
-      color: var(--muted);
-    }
-
-    .legend-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
-    /* D3 Styles */
-    .axis text {
-      fill: var(--muted);
-      font-family: var(--font);
-      font-size: 11px;
-    }
-
-    .axis path,
-    .axis line {
-      stroke: var(--border);
-    }
-
-    .grid line {
-      stroke: var(--border);
-      stroke-dasharray: 4 3;
-      stroke-opacity: .5;
-    }
-
-    .grid path {
-      stroke-width: 0;
-    }
-
-    .tooltip-d3 {
-      position: absolute;
-      background: var(--slate-2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: .8rem;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity .15s;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      min-width: 160px;
-    }
-
-    .tooltip-d3 .t-title {
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 2px;
-    }
-
-    .tooltip-d3 .t-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-    }
-
-    .tooltip-d3 .t-label {
-      color: var(--muted);
-    }
-
-    .tooltip-d3 .t-val {
-      font-weight: 600;
-    }
-
-    .tooltip-d3 .cyan {
-      color: var(--cyan);
-    }
-
-    .tooltip-d3 .green {
-      color: var(--green);
-    }
-
-    .tooltip-d3 .amber {
-      color: var(--amber);
-    }
-  </style>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AI Engineering Strategy Suite</title>
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<style>
+:root{--navy:#0f172a;--slate:#1e293b;--slate2:#263449;--border:#334155;--cyan:#38bdf8;--cdim:rgba(56,189,248,.15);--green:#34d399;--gdim:rgba(52,211,153,.15);--amber:#fbbf24;--text:#f8fafc;--muted:#94a3b8;--font:'Inter',system-ui,sans-serif;--r:10px}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:var(--font);color:var(--text)}
+body{background:var(--navy);display:flex;overflow:hidden}
+.sidebar{width:256px;min-width:256px;background:var(--slate);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:18px 14px;gap:20px;overflow-y:auto}
+.logo{display:flex;align-items:center;gap:8px}.dot{width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan)}.logo h3{font-size:.82rem;text-transform:uppercase;letter-spacing:.1em;color:var(--cyan)}
+.ss{display:flex;flex-direction:column;gap:11px}
+.ss h4{font-size:.66rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);padding-bottom:5px;border-bottom:1px solid var(--border)}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fl{display:flex;justify-content:space-between;font-size:.76rem;color:var(--muted)}.fl .val{color:var(--text);font-weight:600}
+input[type=range]{width:100%;accent-color:var(--cyan);height:4px}
+input[type=number]{width:100%;background:var(--navy);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 10px;font-size:.83rem;font-family:var(--font);outline:none}
+input[type=number]:focus{border-color:var(--cyan)}
+.scard{background:linear-gradient(135deg,rgba(56,189,248,.12),rgba(52,211,153,.08));border:1px solid var(--cyan);border-radius:var(--r);padding:15px;display:flex;flex-direction:column;gap:4px}
+.scard .sl{font-size:.66rem;text-transform:uppercase;letter-spacing:.08em;color:var(--cyan)}
+.scard .sv{font-size:1.85rem;font-weight:800;color:var(--green);text-shadow:0 0 20px rgba(52,211,153,.4)}
+.scard .ss2{font-size:.7rem;color:var(--muted)}
+.mm{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.mc{background:var(--navy);border:1px solid var(--border);border-radius:8px;padding:9px;display:flex;flex-direction:column;gap:2px}
+.mc .ml{font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.mc .mv{font-size:.98rem;font-weight:800;color:var(--cyan)}.mc .mv.g{color:var(--green)}.mc .mv.a{color:var(--amber)}
+.mpill{background:var(--navy);border:1px solid var(--border);border-radius:8px;padding:11px;font-size:.76rem;color:var(--muted);line-height:1.75}.mpill span{color:var(--text)}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.nav{background:var(--slate);border-bottom:1px solid var(--border);padding:0 22px;display:flex;align-items:center;gap:2px;flex-shrink:0;height:46px}
+.nb{margin-right:18px;font-size:.9rem;font-weight:700;color:var(--text);white-space:nowrap}.nb span{color:var(--cyan)}
+.tab{background:none;border:none;border-bottom:2px solid transparent;padding:0 12px;height:46px;cursor:pointer;font-family:var(--font);font-size:.78rem;color:var(--muted);transition:all .18s;white-space:nowrap}.tab:hover{color:var(--text)}.tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.dash{display:none;flex:1;padding:20px 22px;flex-direction:column;gap:18px;overflow-y:auto}.dash.active{display:flex}
+.dh h1{font-size:1.45rem;font-weight:700;margin-bottom:3px}.dh p{color:var(--muted);font-size:.86rem}
+.sr{display:flex;gap:13px;flex-wrap:wrap}
+.sc{background:var(--slate);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;flex:1;min-width:150px;display:flex;flex-direction:column;gap:4px}
+.sc.c{border-color:var(--cyan);background:var(--cdim)}.sc.g{border-color:var(--green);background:var(--gdim)}
+.scl{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:flex;align-items:center;gap:4px}
+.scv{font-size:1.85rem;font-weight:800;color:var(--cyan)}.sc.g .scv{color:var(--green)}.scs{font-size:.74rem;color:var(--muted)}
+.ti{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:var(--border);color:var(--text);font-size:.6rem;font-weight:700;cursor:help;flex-shrink:0;position:relative;text-transform:none;letter-spacing:0;line-height:1;transition:background .15s}.ti:hover{background:var(--cyan);color:var(--navy)}
+.ti::after{content:attr(data-tip);position:absolute;bottom:calc(100% - 8px);left:50%;transform:translateX(-50%);background:#1e293b;border:1px solid var(--border);border-radius:8px;padding:9px 13px;font-size:.74rem;line-height:1.5;color:var(--text);white-space:pre-line;width:260px;pointer-events:none;opacity:0;transition:opacity .18s;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.45)}.ti:hover::after{opacity:1}
+.dc{background:linear-gradient(135deg,rgba(56,189,248,.07),rgba(52,211,153,.05));border:1px solid var(--cyan);border-radius:var(--r);padding:18px 22px;display:flex;flex-direction:column;gap:11px}
+.dch{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--cyan);display:flex;align-items:center;gap:7px}.dch::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.dcb{font-size:.9rem;line-height:1.7;color:var(--text)}.dcb strong{color:var(--green)}
+.dcr{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:3px}
+.dck{background:var(--navy);border:1px solid var(--border);border-radius:8px;padding:11px;text-align:center}.dck .dv{font-size:1.35rem;font-weight:800;color:var(--green)}.dck .dl{font-size:.66rem;color:var(--muted);margin-top:2px}
+.cr{display:flex;gap:16px;flex:1;min-height:300px}
+.cp{background:var(--slate);border:1px solid var(--border);border-radius:var(--r);padding:18px;flex:1;display:flex;flex-direction:column}
+.ct{font-size:.88rem;font-weight:700;margin-bottom:2px}.csb{font-size:.72rem;color:var(--muted);margin-bottom:12px}
+.cb{flex:1;position:relative}
+.lg{display:flex;gap:16px;margin-bottom:10px;flex-wrap:wrap}.li{display:flex;align-items:center;gap:5px;font-size:.74rem;color:var(--muted)}.ld{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.axis text{fill:var(--muted);font-family:var(--font);font-size:11px}.axis path,.axis line{stroke:var(--border)}
+.grid line{stroke:var(--border);stroke-dasharray:4 3;stroke-opacity:.5}.grid path{stroke-width:0}
+.tt{position:absolute;background:var(--slate2);border:1px solid var(--border);border-radius:8px;padding:9px 13px;pointer-events:none;opacity:0;transition:opacity .15s;display:flex;flex-direction:column;gap:3px;min-width:155px;z-index:100;font-size:.82rem}
+.tt .th{font-weight:700;color:var(--text);margin-bottom:1px}
+.tt .tr{display:flex;justify-content:space-between;gap:11px}.tt .tl{color:var(--muted)}.tt .tv{font-weight:600}
+.tv.c{color:var(--cyan)}.tv.g{color:var(--green)}.tv.a{color:var(--amber)}
+.ib{background:var(--slate);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;display:flex;flex-direction:column;gap:6px}
+.ib h3{font-size:.88rem;font-weight:700;color:var(--cyan)}.ib p{font-size:.83rem;line-height:1.7;color:var(--muted)}.ib p strong{color:var(--text)}
+</style>
 </head>
-
 <body>
-  <!-- ════════════════════════════════════════════════════════ SIDEBAR -->
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="dot"></div>
-      <h3>AI ROI Suite</h3>
+<aside class="sidebar">
+  <div class="logo"><div class="dot"></div><h3>AI ROI Suite</h3></div>
+  <div class="ss">
+    <h4>Director's Controls</h4>
+    <div class="fg"><div class="fl"><span>Team Size (Devs)</span><span class="val" id="lblTeam">6</span></div><input type="range" id="inpTeam" min="1" max="50" step="1" value="6"/></div>
+    <div class="fg"><div class="fl"><span>Hourly Rate</span><span class="val" id="lblRate">$75/hr</span></div><input type="range" id="inpRate" min="20" max="150" step="5" value="75"/></div>
+    <div class="fg"><div class="fl"><span>Productivity Gain</span><span class="val" id="lblGain">25%</span></div><input type="range" id="inpGain" min="0" max="100" step="1" value="25"/></div>
+    <div class="fg"><div class="fl"><span>Tool Cost/Dev/Mo ($)</span></div><input type="number" id="inpTool" value="40" min="20" max="200"/></div>
+  </div>
+  <div class="ss">
+    <h4>Live ROI Metrics</h4>
+    <div class="scard"><span class="sl">Monthly Labor Value</span><span class="sv" id="valLabor">$0</span><span class="ss2" id="subLabor">—</span></div>
+    <div class="mm">
+      <div class="mc"><span class="ml">FTE Uplift</span><span class="mv" id="valFTE">—</span></div>
+      <div class="mc"><span class="ml">Monthly ROI</span><span class="mv g" id="valROI">—</span></div>
+      <div class="mc"><span class="ml">Hrs Saved/Mo</span><span class="mv a" id="valHrs">—</span></div>
+      <div class="mc"><span class="ml">Tool Cost/Mo</span><span class="mv" id="valTool">—</span></div>
     </div>
+  </div>
+  <div class="ss">
+    <h4>Team Metadata</h4>
+    <div class="mpill">Period: <span>Oct 2025 – Mar 2026</span><br>Team: <span id="metaTeam">6 engineers</span><br>Tools: <span>Cursor · Claude · GitHub</span></div>
+  </div>
+</aside>
 
-    <!-- Director's Sliders -->
-    <div class="sidebar-section">
-      <h4>Director's Controls</h4>
+<div class="main">
+  <nav class="nav">
+    <span class="nb">Engineering <span>Leadership</span></span>
+    <button class="tab active" data-t="d1">📈 Productivity &amp; Growth</button>
+    <button class="tab" data-t="d2">🔍 Investigation &amp; Intelligence</button>
+    <button class="tab" data-t="d3">👤 Developer Breakdown</button>
+    <button class="tab" data-t="d4">📊 Benchmark Comparison</button>
+  </nav>
 
-      <div class="field-group">
-        <div class="field-label">
-          <span>Team Size (Devs)</span>
-          <span class="val" id="lblTeamSize">6</span>
-        </div>
-        <input type="range" id="inpTeamSize" min="1" max="50" step="1" value="6" />
-      </div>
-
-      <div class="field-group">
-        <div class="field-label">
-          <span>Internal Hourly Rate</span>
-          <span class="val" id="lblRate">$75 / hr</span>
-        </div>
-        <input type="range" id="inpRate" min="30" max="250" step="5" value="75" />
-      </div>
-
-      <div class="field-group">
-        <div class="field-label">
-          <span>Productivity Gain (%)</span>
-          <span class="val" id="lblGain">25%</span>
-        </div>
-        <input type="range" id="inpGain" min="0" max="100" step="1" value="25" />
-      </div>
-
-      <div class="field-group">
-        <div class="field-label"><span>Tool Cost / Dev / Month ($)</span></div>
-        <input type="number" id="inpToolCost" value="40" min="0" max="500" />
-      </div>
-    </div>
-
-    <!-- Live Sidebar Metrics -->
-    <div class="sidebar-section">
-      <h4>Live ROI Metrics</h4>
-      <div class="savings-card">
-        <span class="sc-label">Monthly Labor Value Reclaimed</span>
-        <span class="sc-value" id="valLaborValue">$0</span>
-        <span class="sc-sub" id="subLaborValue">devs × 160 hrs × gain × rate</span>
-      </div>
-      <div class="mini-metrics">
-        <div class="mini-card">
-          <span class="m-label">FTE Equivalent</span>
-          <span class="m-value" id="valFTE">--</span>
-        </div>
-        <div class="mini-card">
-          <span class="m-label">Monthly ROI</span>
-          <span class="m-value green" id="valROI">--%</span>
-        </div>
-        <div class="mini-card">
-          <span class="m-label">Inv. Hrs Saved</span>
-          <span class="m-value amber" id="valInvSaved">--</span>
-        </div>
-        <div class="mini-card">
-          <span class="m-label">Tool Cost / Mo</span>
-          <span class="m-value" id="valToolCostTotal">--</span>
-        </div>
+  <!-- TAB 1 -->
+  <div id="d1" class="dash active">
+    <div class="dh"><h1>Productivity &amp; Growth</h1><p>PR throughput increased while cycle time compressed — AI compounding developer output.</p></div>
+    <div class="sr" id="row1"></div>
+    <div class="dc">
+      <div class="dch">Director's Outcome Summary</div>
+      <div class="dcb" id="dcBody">Loading…</div>
+      <div class="dcr">
+        <div class="dck"><div class="dv" id="dcLab">—</div><div class="dl">Monthly Labor Reclaimed</div></div>
+        <div class="dck"><div class="dv" id="dcFTE">—</div><div class="dl">Effective FTE Uplift</div></div>
+        <div class="dck"><div class="dv" id="dcAnn">—</div><div class="dl">Annual Value Unlocked</div></div>
       </div>
     </div>
-
-    <!-- Team Metadata -->
-    <div class="sidebar-section">
-      <h4>Team Metadata</h4>
-      <div class="metadata-pill">
-        <div>Period: <span>Oct 2025 – Mar 2026</span></div>
-        <div>Team Size: <span id="metaTeamSize">6 engineers</span></div>
-        <div>Tools: <span>Cursor · Claude 3.5 · GitHub API</span></div>
-      </div>
-    </div>
-  </aside>
-
-  <!-- ════════════════════════════════════════════════════════ MAIN -->
-  <div class="main">
-    <!-- Top Nav -->
-    <nav class="top-nav">
-      <span class="nav-brand">Engineering <span>Leadership</span></span>
-      <button class="tab active" data-target="dash1">📈 Productivity &amp; Growth</button>
-      <button class="tab" data-target="dash2">🔍 Investigation &amp; Intelligence</button>
-    </nav>
-
-    <!-- ── DASHBOARD 1: Productivity & Growth ── -->
-    <div id="dash1" class="dashboard active">
-      <div class="dash-header">
-        <h1>Productivity &amp; Growth</h1>
-        <p>PR throughput increased while cycle time compressed — AI compounding developer output.</p>
-      </div>
-
-      <div class="stats-row" id="statsRow1"></div>
-
-      <!-- Director-level Summary (rate-driven) -->
-      <div class="director-card" id="directorSummary">
-        <div class="dc-heading">Director's Outcome Summary</div>
-        <div class="dc-body" id="dcBody">Loading…</div>
-        <div class="dc-row">
-          <div class="dc-kpi">
-            <div class="dk-v" id="dcMonthlyLabor">--</div>
-            <div class="dk-l">Monthly Labor Reclaimed</div>
-          </div>
-          <div class="dc-kpi">
-            <div class="dk-v" id="dcFTE">--</div>
-            <div class="dk-l">Effective FTE Uplift</div>
-          </div>
-          <div class="dc-kpi">
-            <div class="dk-v" id="dcAnnual">--</div>
-            <div class="dk-l">Annual Value Unlocked</div>
-          </div>
+    <div class="cr">
+      <div class="cp">
+        <div class="ct">PRs Completed vs Avg Cycle Time</div>
+        <div class="csb">Oct 2025–Mar 2026 · Left=PRs · Right=Cycle hrs · Shaded=AI period</div>
+        <div class="lg">
+          <div class="li"><div class="ld" style="background:var(--cyan)"></div>PRs Completed</div>
+          <div class="li"><div class="ld" style="background:var(--amber)"></div>Cycle Time (hrs)</div>
+          <div class="li"><div class="ld" style="background:rgba(56,189,248,.2);border-radius:2px;width:16px;height:10px"></div>AI Period</div>
         </div>
-      </div>
-
-      <div class="chart-row">
-        <div class="chart-panel full">
-          <div class="chart-title">PRs Completed vs Avg Cycle Time</div>
-          <div class="chart-sub">Oct 2025 – Mar 2026. Left axis = PRs; Right axis = Cycle hours. Shaded region =
-            AI-Enhanced period.</div>
-          <div class="legend">
-            <div class="legend-item">
-              <div class="legend-dot" style="background:var(--cyan)"></div> PRs Completed
-            </div>
-            <div class="legend-item">
-              <div class="legend-dot" style="background:var(--amber)"></div> Avg Cycle Time (hrs)
-            </div>
-            <div class="legend-item">
-              <div class="legend-dot"
-                style="background:rgba(56,189,248,.15); border-radius:2px; width:18px; height:10px;"></div> AI-Enhanced
-              Period
-            </div>
-          </div>
-          <div class="chart-body" id="lineChartBody">
-            <div class="tooltip-d3" id="ttLine"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── DASHBOARD 2: Investigation & Intelligence ── -->
-    <div id="dash2" class="dashboard">
-      <div class="dash-header">
-        <h1>Investigation &amp; Intelligence</h1>
-        <p>AI-assisted root cause analysis collapses the discovery gap. Directors: less firefighting, more shipping.</p>
-      </div>
-
-      <div class="stats-row" id="statsRow2"></div>
-
-      <div class="chart-row">
-        <div class="chart-panel full">
-          <div class="chart-title">Avg Investigation Hours — Baseline vs AI-Enhanced</div>
-          <div class="chart-sub">Monthly grouped bars. Baseline (Oct–Dec 2025) vs AI-Enhanced (Jan–Mar 2026).</div>
-          <div class="legend">
-            <div class="legend-item">
-              <div class="legend-dot" style="background:var(--muted)"></div> Baseline
-            </div>
-            <div class="legend-item">
-              <div class="legend-dot" style="background:var(--cyan)"></div> AI-Enhanced
-            </div>
-          </div>
-          <div class="chart-body" id="barChartBody">
-            <div class="tooltip-d3" id="ttBar"></div>
-          </div>
-        </div>
+        <div class="cb" id="cb1"><div class="tt" id="tt1"></div></div>
       </div>
     </div>
   </div>
 
-  <!-- ════════════════════════════════════════════════════════ SCRIPT -->
-  <script>
-    // ──────────────────────── DATA ─────────────────────────────────────
-    const RAW = {
-      "team_metadata": { "size": 6, "tools": ["Cursor", "Claude 3.5 Sonnet", "GitHub API"], "period": "Oct 2025 - Mar 2026" },
-      "monthly_metrics": [
-        { "month": "Oct 2025", "mode": "Baseline", "avg_cycle_time_hrs": 72.5, "avg_investigation_hrs": 14.2, "deployment_frequency": 12, "change_failure_rate": 0.12, "mttr_mins": 110, "prs_completed": 48 },
-        { "month": "Nov 2025", "mode": "Baseline", "avg_cycle_time_hrs": 68.0, "avg_investigation_hrs": 13.5, "deployment_frequency": 14, "change_failure_rate": 0.10, "mttr_mins": 105, "prs_completed": 52 },
-        { "month": "Dec 2025", "mode": "Baseline", "avg_cycle_time_hrs": 70.2, "avg_investigation_hrs": 15.1, "deployment_frequency": 11, "change_failure_rate": 0.14, "mttr_mins": 115, "prs_completed": 45 },
-        { "month": "Jan 2026", "mode": "AI-Enhanced", "avg_cycle_time_hrs": 54.0, "avg_investigation_hrs": 8.2, "deployment_frequency": 18, "change_failure_rate": 0.15, "mttr_mins": 65, "prs_completed": 62 },
-        { "month": "Feb 2026", "mode": "AI-Enhanced", "avg_cycle_time_hrs": 48.5, "avg_investigation_hrs": 6.1, "deployment_frequency": 22, "change_failure_rate": 0.11, "mttr_mins": 42, "prs_completed": 74 },
-        { "month": "Mar 2026", "mode": "AI-Enhanced", "avg_cycle_time_hrs": 42.1, "avg_investigation_hrs": 4.8, "deployment_frequency": 25, "change_failure_rate": 0.09, "mttr_mins": 35, "prs_completed": 81 }
-      ]
-    };
-
-    const DATA = RAW.monthly_metrics;
-    const BASELINE = DATA.filter(d => d.mode === "Baseline");
-    const AI = DATA.filter(d => d.mode === "AI-Enhanced");
-    const TEAM = RAW.team_metadata.size;
-
-    // ──────────────────────── STATE ────────────────────────────────────
-    const state = { rate: 75, toolCost: 40, gain: 25, teamSize: TEAM };
-    let dynamicTeam = TEAM; // mutable team size from slider
-
-    // ──────────────────────── FORMATTERS ───────────────────────────────
-    const $ = s => document.querySelector(s);
-    const $$ = s => document.querySelectorAll(s);
-    const fmt = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
-    const fmtN = new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 });
-
-    // ──────────────────────── INIT ────────────────────────────────────
-    function init() {
-      buildStats();
-      initLineChart();
-      initBarChart();
-      updateAll();
-      setupControls();
-      setupTabs();
-    }
-
-    // ──────────────────────── STAT CARDS ─────────────────────────────
-    function buildStats() {
-      // ── Dashboard 1 stats
-      const basePR = d3.mean(BASELINE, d => d.prs_completed);
-      const aiPR = d3.mean(AI, d => d.prs_completed);
-      const prLift = ((aiPR - basePR) / basePR * 100).toFixed(1);
-
-      const baseCT = d3.mean(BASELINE, d => d.avg_cycle_time_hrs);
-      const aiCT = d3.mean(AI, d => d.avg_cycle_time_hrs);
-      const ctDrop = ((baseCT - aiCT) / baseCT * 100).toFixed(1);
-
-      const baseDep = d3.mean(BASELINE, d => d.deployment_frequency);
-      const aiDep = d3.mean(AI, d => d.deployment_frequency);
-      const depLift = ((aiDep - baseDep) / baseDep * 100).toFixed(1);
-
-      $('#statsRow1').innerHTML = `
-    <div class="stat-card cyan">
-      <span class="sc-l">PR Throughput Lift <span class="tip-icon" data-tip="Pull Requests completed per month.\nFormula: (AI avg − Baseline avg) / Baseline avg\nHigher throughput = more features shipped per engineer per month.">?</span></span>
-      <span class="sc-v">+${prLift}%</span>
-      <span class="sc-s">Avg ${fmtN.format(basePR)} → ${fmtN.format(aiPR)} PRs/mo</span>
+  <!-- TAB 2 -->
+  <div id="d2" class="dash">
+    <div class="dh"><h1>Investigation &amp; Intelligence</h1><p>AI-assisted root cause analysis collapses the discovery gap — less firefighting, more shipping.</p></div>
+    <div class="sr" id="row2"></div>
+    <div class="cr">
+      <div class="cp">
+        <div class="ct">Avg Investigation Hours — Baseline vs AI-Enhanced</div>
+        <div class="csb">Grouped bars · Baseline (Oct–Dec 2025) vs AI-Enhanced (Jan–Mar 2026)</div>
+        <div class="lg">
+          <div class="li"><div class="ld" style="background:var(--muted)"></div>Baseline</div>
+          <div class="li"><div class="ld" style="background:var(--cyan)"></div>AI-Enhanced</div>
+        </div>
+        <div class="cb" id="cb2"><div class="tt" id="tt2"></div></div>
+      </div>
     </div>
-    <div class="stat-card">
-      <span class="sc-l">Cycle Time Reduction <span class="tip-icon" data-tip="Average hours from branch creation to PR merge.\nFormula: (Baseline avg − AI avg) / Baseline avg\nLower cycle time = faster value delivery and fewer WIP bottlenecks.">?</span></span>
-      <span class="sc-v" style="color:var(--amber)">−${ctDrop}%</span>
-      <span class="sc-s">Avg ${fmtN.format(baseCT)} → ${fmtN.format(aiCT)} hrs</span>
+  </div>
+
+  <!-- TAB 3 -->
+  <div id="d3" class="dash">
+    <div class="dh"><h1>Developer Breakdown</h1><p>Where does the 25% AI productivity gain come from? The 50/30/20 efficiency split.</p></div>
+    <div class="sr" id="row3"></div>
+    <div class="ib">
+      <h3>🧠 How AI Buys Back Developer Time</h3>
+      <p>The <strong>AI productivity gain</strong> breaks into three reclaimed categories per engineer each month: <strong>50%</strong> from faster coding (autocomplete &amp; generation), <strong>30%</strong> from test generation &amp; QA reviews, and <strong>20%</strong> from AI-assisted research &amp; documentation. Hover each bar to see the exact breakdown per engineer.</p>
+      <div class="lg" style="margin-top:4px;margin-bottom:0">
+        <div class="li"><div class="ld" style="background:var(--cyan)"></div>Coding (50%)</div>
+        <div class="li"><div class="ld" style="background:var(--green)"></div>Testing/QA (30%)</div>
+        <div class="li"><div class="ld" style="background:var(--amber)"></div>Research/Docs (20%)</div>
+      </div>
     </div>
-    <div class="stat-card green">
-      <span class="sc-l">Deploy Frequency Gain <span class="tip-icon" data-tip="Number of successful production deployments per month.\nFormula: (AI avg − Baseline avg) / Baseline avg\nHigher frequency = smaller batches, lower risk, faster feedback loops.">?</span></span>
-      <span class="sc-v">+${depLift}%</span>
-      <span class="sc-s">Avg ${fmtN.format(baseDep)} → ${fmtN.format(aiDep)} deploys/mo</span>
-    </div>`;
-
-      // ── Dashboard 2 stats built dynamically — called from updateAll
-    }
-
-    // ──────────────────────── UPDATE ALL ─────────────────────────────
-    // Central recalculation triggered by any input change
-    function updateAll() {
-      const T = dynamicTeam;
-      const R = state.rate;
-      const G = state.gain / 100;    // productivity gain as decimal
-      const C = state.toolCost;      // cost per dev per month
-
-      // ── Monthly Labor Value: T × (160 hrs × G) × R
-      const monthlyLaborValue = T * 160 * G * R;
-      // ── FTE Equivalent uplift: team is now performing like T*(1+G) people
-      const fteEquiv = T * (1 + G);
-      const fteUplift = fteEquiv - T;
-      // ── Monthly tool cost
-      const totalToolCost = T * C;
-      // ── Monthly net ROI: (labor_value - tool_cost) / tool_cost
-      const monthlyROI = totalToolCost > 0
-        ? ((monthlyLaborValue - totalToolCost) / totalToolCost * 100) : 0;
-
-      // ── Investigation savings (from mock data, scaled by dynamicTeam)
-      const baseInv = d3.mean(BASELINE, d => d.avg_investigation_hrs);
-      const aiInv = d3.mean(AI, d => d.avg_investigation_hrs);
-      const invDelta = baseInv - aiInv;   // avg hrs saved per issue per dev
-      const invSaved = invDelta * T * R;  // monthly dollar value
-
-      // ── Update sidebar mini-metrics
-      $('#valLaborValue').textContent = fmt.format(monthlyLaborValue);
-      $('#subLaborValue').textContent = `${T} devs × 160 hrs × ${state.gain}% × $${R}/hr`;
-      $('#valFTE').textContent = `${fmtN.format(fteEquiv)} FTEs`;
-      $('#valROI').textContent = `${fmtN.format(monthlyROI)}%`;
-      $('#valInvSaved').textContent = fmtN.format(invDelta * T) + ' hrs';
-      $('#valToolCostTotal').textContent = fmt.format(totalToolCost);
-      $('#metaTeamSize').textContent = `${T} engineers`;
-
-      // ── Director's summary narrative
-      const roiLabel = monthlyROI >= 500 ? 'exceptional' : monthlyROI >= 200 ? 'strong' : monthlyROI >= 50 ? 'positive' : 'developing';
-      const fteLabel = fteUplift >= 2 ? `the equivalent of ${fmtN.format(fteUplift)} additional engineers — without headcount cost` :
-        fteUplift >= 0.5 ? `partial FTE gains worth ${fmt.format(monthlyLaborValue)} / month` :
-          'marginal capacity gains — consider increasing the productivity gain assumption';
-      const annualVal = monthlyLaborValue * 12;
-
-      $('#dcBody').innerHTML = `With a <strong>${state.gain}% AI productivity gain</strong> across ${T} engineers at <strong>$${R}/hr</strong>, the team is generating ${fmt.format(monthlyLaborValue)}/month in reclaimed capacity — ${fteLabel}. 
-    Monthly tool investment of ${fmt.format(totalToolCost)} delivers a <strong>${fmtN.format(monthlyROI)}% ${roiLabel} ROI</strong>. 
-    Annualized, this unlocks <strong>${fmt.format(annualVal)}</strong> in engineering throughput.`;
-
-      $('#dcMonthlyLabor').textContent = fmt.format(monthlyLaborValue);
-      $('#dcFTE').textContent = `+${fmtN.format(fteUplift)} FTE`;
-      $('#dcAnnual').textContent = fmt.format(annualVal);
-
-      // ── Re-render dynamic stats
-      renderStats2Dynamic(T, R, C);
-    }
-
-    function renderStats2Dynamic(T, R, C) {
-      const baseInv = d3.mean(BASELINE, d => d.avg_investigation_hrs);
-      const aiInv = d3.mean(AI, d => d.avg_investigation_hrs);
-      const invDrop = ((baseInv - aiInv) / baseInv * 100).toFixed(1);
-      const baseMTTR = d3.mean(BASELINE, d => d.mttr_mins);
-      const aiMTTR = d3.mean(AI, d => d.mttr_mins);
-      const mttrDrop = ((baseMTTR - aiMTTR) / baseMTTR * 100).toFixed(1);
-      const monthlySaved = (baseInv - aiInv) * T * R;
-      const roi = C > 0 ? ((monthlySaved - T * C) / (T * C) * 100).toFixed(0) : '∞';
-
-      $('#statsRow2').innerHTML = `
-    <div class="stat-card cyan">
-      <span class="sc-l">Investigation Time Drop <span class="tip-icon" data-tip="Average hours an engineer spends diagnosing a bug or incident before AI.\nFormula: (Baseline avg − AI avg) / Baseline avg\nAI-assisted root cause analysis, log search, and context retrieval collapse this gap.">?</span></span>
-      <span class="sc-v">−${invDrop}%</span>
-      <span class="sc-s">Avg ${fmtN.format(baseInv)} → ${fmtN.format(aiInv)} hrs/issue</span>
+    <div class="cr">
+      <div class="cp">
+        <div class="ct">Hours Reclaimed per Engineer by Category</div>
+        <div class="csb">Stacked bars · Each segment = AI-reclaimed hours by activity type per month</div>
+        <div class="cb" id="cb3"><div class="tt" id="tt3"></div></div>
+      </div>
     </div>
-    <div class="stat-card green">
-      <span class="sc-l">MTTR Reduction <span class="tip-icon" data-tip="Mean Time To Resolve — minutes from incident detection to full service restoration.\nFormula: (Baseline avg − AI avg) / Baseline avg\nFaster triage and runbook retrieval via AI shortens the blast radius of every incident.">?</span></span>
-      <span class="sc-v">−${mttrDrop}%</span>
-      <span class="sc-s">Avg ${fmtN.format(baseMTTR)} → ${fmtN.format(aiMTTR)} min</span>
+  </div>
+
+  <!-- TAB 4 -->
+  <div id="d4" class="dash">
+    <div class="dh"><h1>Benchmark Comparison</h1><p>AI-enhanced team vs. standard team of equal headcount — cost efficiency and throughput side by side.</p></div>
+    <div class="sr" id="row4"></div>
+    <div class="cr">
+      <div class="cp">
+        <div class="ct">Cost per Feature &amp; Monthly Throughput — AI vs Standard Team</div>
+        <div class="csb">Both teams = same headcount · AI team cost includes tool spend offset</div>
+        <div class="lg">
+          <div class="li"><div class="ld" style="background:var(--muted)"></div>Standard Team</div>
+          <div class="li"><div class="ld" style="background:var(--cyan)"></div>AI-Enhanced Team</div>
+        </div>
+        <div class="cb" id="cb4"><div class="tt" id="tt4"></div></div>
+      </div>
     </div>
-    <div class="stat-card">
-      <span class="sc-l">Monthly Tool ROI <span class="tip-icon" data-tip="Net return on AI tool spend in a single month.\nFormula: (Labor hrs saved × Rate − Tool Cost) / Tool Cost × 100\nBreak-even at 0%; values above 100% mean every tool dollar returns more than $2 in capacity.">?</span></span>
-      <span class="sc-v" style="color:var(--green)">${roi}%</span>
-      <span class="sc-s">Savings ${fmt.format(monthlySaved)} vs cost ${fmt.format(T * C)}</span>
-    </div>`;
-    }
+  </div>
+</div>
+<script>
+// ── DATA ──────────────────────────────────────────────────────────
+const MO=[
+  {m:"Oct 25",mode:"B",ct:72.5,inv:14.2,dep:12,mttr:110,prs:48},
+  {m:"Nov 25",mode:"B",ct:68.0,inv:13.5,dep:14,mttr:105,prs:52},
+  {m:"Dec 25",mode:"B",ct:70.2,inv:15.1,dep:11,mttr:115,prs:45},
+  {m:"Jan 26",mode:"A",ct:54.0,inv:8.2, dep:18,mttr:65, prs:62},
+  {m:"Feb 26",mode:"A",ct:48.5,inv:6.1, dep:22,mttr:42, prs:74},
+  {m:"Mar 26",mode:"A",ct:42.1,inv:4.8, dep:25,mttr:35, prs:81}
+];
+const BAS=MO.filter(d=>d.mode==="B"), AI=MO.filter(d=>d.mode==="A");
+const DEVS=["Alice","Bob","Carlos","Diana","Elena","Frank"];
+const VAR=[1.05,0.92,1.08,0.97,1.03,0.95];
 
-    function setupControls() {
-      // Team Size
-      $('#inpTeamSize').addEventListener('input', e => {
-        dynamicTeam = +e.target.value;
-        $('#lblTeamSize').textContent = dynamicTeam;
-        updateAll();
-      });
-      // Rate
-      $('#inpRate').addEventListener('input', e => {
-        state.rate = +e.target.value;
-        $('#lblRate').textContent = `$${state.rate} / hr`;
-        updateAll();
-      });
-      // Gain
-      $('#inpGain').addEventListener('input', e => {
-        state.gain = +e.target.value;
-        $('#lblGain').textContent = `${state.gain}%`;
-        updateAll();
-      });
-      // Tool cost
-      $('#inpToolCost').addEventListener('input', e => {
-        state.toolCost = +e.target.value || 0;
-        updateAll();
-      });
-    }
+// ── STATE ─────────────────────────────────────────────────────────
+const S={team:6,rate:75,gain:25,tool:40};
+const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
+const fC=new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});
+const fN=new Intl.NumberFormat('en-US',{maximumFractionDigits:1});
+const avg=(a,f)=>a.reduce((s,d)=>s+f(d),0)/a.length;
 
-    // ──────────────────────── TABS ────────────────────────────────────
-    function setupTabs() {
-      $$('.tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-          $$('.tab').forEach(t => t.classList.remove('active'));
-          $$('.dashboard').forEach(d => d.classList.remove('active'));
-          tab.classList.add('active');
-          const panel = $('#' + tab.dataset.target);
-          panel.classList.add('active');
-          // Redraw charts after display change
-          setTimeout(resizeCharts, 60);
-        });
-      });
-    }
+// ── SIDEBAR ────────────────────────────────────────────────────────
+function sidebar(){
+  const{team:T,rate:R,gain:G,tool:C}=S, g=G/100;
+  const lab=T*160*g*R, fte=T*g, tc=T*C;
+  const roi=tc>0?((lab-tc)/tc*100):0;
+  const invD=avg(BAS,d=>d.inv)-avg(AI,d=>d.inv);
+  $('#valLabor').textContent=fC.format(lab);
+  $('#subLabor').textContent=`${T}×160hr×${G}%×$${R}/hr`;
+  $('#valFTE').textContent=`+${fN.format(fte)} FTE`;
+  $('#valROI').textContent=`${fN.format(roi)}%`;
+  $('#valHrs').textContent=`${fN.format(invD*T)} hrs`;
+  $('#valTool').textContent=fC.format(tc);
+  $('#metaTeam').textContent=`${T} engineers`;
+  $('#lblTeam').textContent=T;
+  $('#lblRate').textContent=`$${R}/hr`;
+  $('#lblGain').textContent=`${G}%`;
+  const ann=lab*12;
+  const lbl=roi>=500?'exceptional':roi>=200?'strong':roi>=50?'positive':'developing';
+  const fl=fte>=2?`equivalent to ${fN.format(fte)} extra engineers`:fte>=0.5?`${fN.format(fte)} FTE uplift`:'marginal FTE gains';
+  $('#dcBody').innerHTML=`With a <strong>${G}% AI gain</strong> across ${T} engineers at <strong>$${R}/hr</strong>, the team generates ${fC.format(lab)}/month — ${fl}. Tool spend of ${fC.format(tc)} delivers <strong>${fN.format(roi)}% ${lbl} ROI</strong>. Annualized: <strong>${fC.format(ann)}</strong>.`;
+  $('#dcLab').textContent=fC.format(lab);
+  $('#dcFTE').textContent=`+${fN.format(fte)} FTE`;
+  $('#dcAnn').textContent=fC.format(ann);
+}
 
-    // ══════════════════════════════════════════════════════════════════
-    // CHART 1 — Dual-axis Line Chart (PRs + Cycle Time)
-    // ══════════════════════════════════════════════════════════════════
-    let lineSvgEl;
+// ── STAT ROW BUILDERS ─────────────────────────────────────────────
+function row1(){
+  const prL=((avg(AI,d=>d.prs)-avg(BAS,d=>d.prs))/avg(BAS,d=>d.prs)*100).toFixed(1);
+  const ctD=((avg(BAS,d=>d.ct)-avg(AI,d=>d.ct))/avg(BAS,d=>d.ct)*100).toFixed(1);
+  const dL=((avg(AI,d=>d.dep)-avg(BAS,d=>d.dep))/avg(BAS,d=>d.dep)*100).toFixed(1);
+  $('#row1').innerHTML=`
+  <div class="sc c"><span class="scl">PR Throughput <span class="ti" data-tip="PRs merged/month.\nFormula: (AI−Base)/Base\nMore PRs = faster delivery.">?</span></span><span class="scv">+${prL}%</span><span class="scs">${fN.format(avg(BAS,d=>d.prs))} → ${fN.format(avg(AI,d=>d.prs))} PRs/mo</span></div>
+  <div class="sc"><span class="scl">Cycle Time <span class="ti" data-tip="Hrs branch→merge.\nFormula: (Base−AI)/Base\nLower = faster flow, less WIP.">?</span></span><span class="scv" style="color:var(--amber)">−${ctD}%</span><span class="scs">${fN.format(avg(BAS,d=>d.ct))} → ${fN.format(avg(AI,d=>d.ct))} hrs</span></div>
+  <div class="sc g"><span class="scl">Deploy Frequency <span class="ti" data-tip="Deploys/month.\nFormula: (AI−Base)/Base\nHigher = smaller batches, lower risk.">?</span></span><span class="scv">+${dL}%</span><span class="scs">${fN.format(avg(BAS,d=>d.dep))} → ${fN.format(avg(AI,d=>d.dep))} /mo</span></div>`;}
 
-    function initLineChart() {
-      lineSvgEl = d3.select('#lineChartBody').append('svg');
-      lineSvgEl.append('defs');
-      // Gradient for AI region fill
-      const defs = lineSvgEl.select('defs');
-      const grad = defs.append('linearGradient').attr('id', 'AIGrad').attr('x1', '0').attr('x2', '0').attr('y1', '0').attr('y2', '1');
-      grad.append('stop').attr('offset', '0%').attr('stop-color', '#38bdf8').attr('stop-opacity', .18);
-      grad.append('stop').attr('offset', '100%').attr('stop-color', '#38bdf8').attr('stop-opacity', .02);
+function row2(){
+  const{team:T,rate:R,tool:C}=S;
+  const iD=((avg(BAS,d=>d.inv)-avg(AI,d=>d.inv))/avg(BAS,d=>d.inv)*100).toFixed(1);
+  const mD=((avg(BAS,d=>d.mttr)-avg(AI,d=>d.mttr))/avg(BAS,d=>d.mttr)*100).toFixed(1);
+  const sv=(avg(BAS,d=>d.inv)-avg(AI,d=>d.inv))*T*R;
+  const roi=C>0?((sv-T*C)/(T*C)*100).toFixed(0):'∞';
+  $('#row2').innerHTML=`
+  <div class="sc c"><span class="scl">Investigation Drop <span class="ti" data-tip="Hrs/issue diagnosing bugs.\nFormula: (Base−AI)/Base\nAI root-cause cuts triage drastically.">?</span></span><span class="scv">−${iD}%</span><span class="scs">${fN.format(avg(BAS,d=>d.inv))} → ${fN.format(avg(AI,d=>d.inv))} hrs/issue</span></div>
+  <div class="sc g"><span class="scl">MTTR Reduction <span class="ti" data-tip="Minutes detection→resolve.\nFormula: (Base−AI)/Base\nFaster triage = smaller blast radius.">?</span></span><span class="scv">−${mD}%</span><span class="scs">${fN.format(avg(BAS,d=>d.mttr))} → ${fN.format(avg(AI,d=>d.mttr))} min</span></div>
+  <div class="sc"><span class="scl">Tool ROI <span class="ti" data-tip="Net return on AI spend.\nFormula: (Saved×Rate−ToolCost)/ToolCost×100\n0%=break-even.">?</span></span><span class="scv" style="color:var(--green)">${roi}%</span><span class="scs">Saved ${fC.format(sv)} vs ${fC.format(T*C)}</span></div>`;}
 
-      lineSvgEl.append('g').attr('class', 'grid');
-      lineSvgEl.append('g').attr('class', 'axis ax-x');
-      lineSvgEl.append('g').attr('class', 'axis ax-y-left');
-      lineSvgEl.append('g').attr('class', 'axis ax-y-right');
-      lineSvgEl.append('rect').attr('class', 'ai-region');
-      lineSvgEl.append('path').attr('class', 'line-pr');
-      lineSvgEl.append('path').attr('class', 'line-ct');
-      lineSvgEl.append('g').attr('class', 'dot-pr');
-      lineSvgEl.append('g').attr('class', 'dot-ct');
-      lineSvgEl.append('line').attr('class', 'crosshair').style('display', 'none');
-      lineSvgEl.append('rect').attr('class', 'overlay').style('fill', 'none').style('pointer-events', 'all');
-      renderLineChart();
-    }
+function row3(){
+  const g=S.gain/100, h=(160*g).toFixed(1);
+  const cod=(h*.5).toFixed(1), qa=(h*.3).toFixed(1), res=(h*.2).toFixed(1);
+  $('#row3').innerHTML=`
+  <div class="sc c"><span class="scl">Coding Automation</span><span class="scv">${cod} hrs</span><span class="scs">50% of gain · autocomplete &amp; generation</span></div>
+  <div class="sc g"><span class="scl">Testing / QA</span><span class="scv" style="color:var(--green)">${qa} hrs</span><span class="scs">30% of gain · test gen &amp; review</span></div>
+  <div class="sc"><span class="scl">Research / Docs</span><span class="scv" style="color:var(--amber)">${res} hrs</span><span class="scs">20% of gain · search &amp; summarisation</span></div>`;}
 
-    function renderLineChart() {
-      const body = document.getElementById('lineChartBody');
-      const W = body.clientWidth || 700;
-      const H = body.clientHeight || 320;
-      if (!W || !H) return;
+function row4(){
+  const{team:T,rate:R,gain:G,tool:C}=S, g=G/100;
+  const sF=R*10, aF=R*10*(1-g)+C;
+  const sT=T*2, aT=Math.round(T*2*(1+g));
+  const pct=((sF-aF)/sF*100).toFixed(0);
+  $('#row4').innerHTML=`
+  <div class="sc"><span class="scl">Std Cost/Feature</span><span class="scv" style="color:var(--muted)">${fC.format(sF)}</span><span class="scs">$${R}/hr × 10 hrs baseline</span></div>
+  <div class="sc c"><span class="scl">AI Cost/Feature</span><span class="scv">${fC.format(aF)}</span><span class="scs">${pct}% cheaper incl. tool cost</span></div>
+  <div class="sc g"><span class="scl">AI Throughput Gain</span><span class="scv">+${G}%</span><span class="scs">${sT} → ${aT} features/mo</span></div>`;}
 
-      const M = { top: 20, right: 54, bottom: 36, left: 54 };
-      const iW = W - M.left - M.right;
-      const iH = H - M.top - M.bottom;
+// ── CHART 1: Dual-axis Line ────────────────────────────────────────
+let svgL;
+function initC1(){
+  svgL=d3.select('#cb1').append('svg');
+  const grad=svgL.append('defs').append('linearGradient').attr('id','gAI').attr('x1',0).attr('x2',0).attr('y1',0).attr('y2',1);
+  grad.append('stop').attr('offset','0%').attr('stop-color','#38bdf8').attr('stop-opacity',.2);
+  grad.append('stop').attr('offset','100%').attr('stop-color','#38bdf8').attr('stop-opacity',.02);
+  ['grid','axX','axL','axR','aiR','gPR','gCT','dPR','dCT'].forEach(c=>svgL.append('g').attr('class',c));
+  svgL.append('line').attr('class','xh').style('display','none');
+  svgL.append('rect').attr('class','ov').style('fill','none').style('pointer-events','all');
+  drawC1();
+}
+function drawC1(){
+  const el=document.getElementById('cb1');
+  const W=el.clientWidth||700,H=el.clientHeight||260;
+  if(!W||!H)return;
+  const m={t:14,r:48,b:32,l:48};
+  svgL.attr('width',W).attr('height',H);
+  const xS=d3.scalePoint().domain(MO.map(d=>d.m)).range([m.l,W-m.r]).padding(.5);
+  const yP=d3.scaleLinear().domain([0,d3.max(MO,d=>d.prs)*1.25]).range([H-m.b,m.t]);
+  const yC=d3.scaleLinear().domain([0,d3.max(MO,d=>d.ct)*1.25]).range([H-m.b,m.t]);
+  svgL.select('.grid').attr('transform',`translate(${m.l},0)`).call(d3.axisLeft(yP).ticks(4).tickSize(-(W-m.l-m.r)).tickFormat(''));
+  svgL.select('.axX').attr('transform',`translate(0,${H-m.b})`).call(d3.axisBottom(xS).tickSizeOuter(0));
+  svgL.select('.axL').attr('transform',`translate(${m.l},0)`).call(d3.axisLeft(yP).ticks(4));
+  svgL.select('.axR').attr('transform',`translate(${W-m.r},0)`).call(d3.axisRight(yC).ticks(4).tickFormat(d=>d+'h'));
+  const ax=xS('Jan 26')-xS.step()*.32;
+  svgL.select('.aiR').selectAll('rect').data([1]).join('rect').attr('x',ax).attr('y',m.t).attr('width',Math.max(0,W-m.r-ax+4)).attr('height',H-m.t-m.b).attr('fill','url(#gAI)');
+  const lP=d3.line().x(d=>xS(d.m)).y(d=>yP(d.prs)).curve(d3.curveMonotoneX);
+  const lC=d3.line().x(d=>xS(d.m)).y(d=>yC(d.ct)).curve(d3.curveMonotoneX);
+  svgL.select('.gPR').selectAll('path').data([MO]).join('path').attr('fill','none').attr('stroke','var(--cyan)').attr('stroke-width',2.5).transition().duration(600).attr('d',lP);
+  svgL.select('.gCT').selectAll('path').data([MO]).join('path').attr('fill','none').attr('stroke','var(--amber)').attr('stroke-width',2.5).attr('stroke-dasharray','6 3').transition().duration(600).attr('d',lC);
+  svgL.select('.dPR').selectAll('circle').data(MO,d=>d.m).join('circle').attr('r',5).attr('fill','var(--cyan)').transition().duration(500).attr('cx',d=>xS(d.m)).attr('cy',d=>yP(d.prs));
+  svgL.select('.dCT').selectAll('circle').data(MO,d=>d.m).join('circle').attr('r',5).attr('fill','var(--amber)').transition().duration(500).attr('cx',d=>xS(d.m)).attr('cy',d=>yC(d.ct));
+  const tt=$('#tt1');
+  const xh=svgL.select('.xh').attr('y1',m.t).attr('y2',H-m.b).attr('stroke','rgba(148,163,184,.35)').attr('stroke-width',1).attr('stroke-dasharray','4 3');
+  const iW=W-m.l-m.r;
+  svgL.select('.ov').attr('x',m.l).attr('y',m.t).attr('width',iW).attr('height',H-m.t-m.b)
+    .on('mousemove',function(ev){
+      const[mx]=d3.pointer(ev);
+      const i=Math.round((mx-m.l)/(iW/(MO.length-1)));
+      const d=MO[Math.max(0,Math.min(i,MO.length-1))];
+      const cx=xS(d.m);
+      xh.style('display','block').attr('x1',cx).attr('x2',cx);
+      tt.style.opacity='1';tt.style.left=(cx+(cx>iW/2?-185:15))+'px';tt.style.top=(m.t+6)+'px';
+      tt.innerHTML=`<span class="th">${d.m} <span style="font-size:.68rem;color:var(--${d.mode==='B'?'muted':'cyan'})">${d.mode==='B'?'Baseline':'AI-Enhanced'}</span></span><div class="tr"><span class="tl">PRs</span><span class="tv c">${d.prs}</span></div><div class="tr"><span class="tl">Cycle</span><span class="tv a">${d.ct}h</span></div><div class="tr"><span class="tl">Deploys</span><span class="tv">${d.dep}</span></div>`;
+    }).on('mouseleave',()=>{tt.style.opacity='0';xh.style('display','none');});
+}
 
-      lineSvgEl.attr('width', W).attr('height', H);
+// ── CHART 2: Grouped Bar (Investigation) ─────────────────────────
+let svgB;
+function initC2(){
+  svgB=d3.select('#cb2').append('svg');
+  ['grid','axX','axY','bars','lbls'].forEach(c=>svgB.append('g').attr('class',c));
+  drawC2();
+}
+function drawC2(){
+  const el=document.getElementById('cb2');
+  const W=el.clientWidth||700,H=el.clientHeight||260;
+  if(!W||!H)return;
+  const m={t:14,r:20,b:54,l:48};
+  svgB.attr('width',W).attr('height',H);
+  const pairs=[{l:'Oct/Jan',b:BAS[0].inv,a:AI[0].inv},{l:'Nov/Feb',b:BAS[1].inv,a:AI[1].inv},{l:'Dec/Mar',b:BAS[2].inv,a:AI[2].inv}];
+  const x0=d3.scaleBand().domain(pairs.map(d=>d.l)).range([m.l,W-m.r]).paddingInner(.3).paddingOuter(.2);
+  const x1=d3.scaleBand().domain(['b','a']).range([0,x0.bandwidth()]).padding(.1);
+  const yS=d3.scaleLinear().domain([0,d3.max(pairs,d=>d.b)*1.3]).range([H-m.b,m.t]);
+  svgB.select('.grid').attr('transform',`translate(${m.l},0)`).call(d3.axisLeft(yS).ticks(4).tickSize(-(W-m.l-m.r)).tickFormat(''));
+  svgB.select('.axX').attr('transform',`translate(0,${H-m.b})`).call(d3.axisBottom(x0).tickSizeOuter(0));
+  svgB.select('.axY').attr('transform',`translate(${m.l},0)`).call(d3.axisLeft(yS).ticks(4).tickFormat(d=>d+'h'));
+  svgB.select('.axX').selectAll('.xsub').remove();
+  svgB.select('.axX').append('text').attr('class','xsub').attr('x',(W-m.l-m.r)/2+m.l).attr('y',44).attr('text-anchor','middle').attr('fill','var(--muted)').attr('font-size',10).text('Baseline month / AI-Enhanced month');
+  const flat=pairs.flatMap(p=>[{l:p.l,k:'b',v:p.b},{l:p.l,k:'a',v:p.a}]);
+  svgB.select('.bars').selectAll('rect').data(flat,d=>d.l+d.k).join(
+    e=>e.append('rect').attr('rx',3).attr('x',d=>x0(d.l)+x1(d.k)).attr('y',H-m.b).attr('width',x1.bandwidth()).attr('height',0).attr('fill',d=>d.k==='b'?'var(--border)':'var(--cyan)'),
+    u=>u,r=>r.remove()
+  ).transition().duration(600).attr('x',d=>x0(d.l)+x1(d.k)).attr('y',d=>yS(d.v)).attr('width',x1.bandwidth()).attr('height',d=>(H-m.b)-yS(d.v));
+  svgB.select('.lbls').selectAll('text').data(flat,d=>d.l+d.k).join('text').attr('text-anchor','middle').attr('font-size',11).attr('fill',d=>d.k==='b'?'var(--muted)':'var(--cyan)').attr('font-weight',600).transition().duration(600).attr('x',d=>x0(d.l)+x1(d.k)+x1.bandwidth()/2).attr('y',d=>yS(d.v)-5).text(d=>fN.format(d.v)+'h');
+}
 
-      // Scales
-      const xDomain = DATA.map(d => d.month);
-      const xS = d3.scalePoint().domain(xDomain).range([M.left, W - M.right]).padding(.5);
-      const yPR = d3.scaleLinear().domain([0, d3.max(DATA, d => d.prs_completed) * 1.2]).range([H - M.bottom, M.top]);
-      const yCT = d3.scaleLinear().domain([0, d3.max(DATA, d => d.avg_cycle_time_hrs) * 1.2]).range([H - M.bottom, M.top]);
+// ── CHART 3: Stacked Bar (50/30/20 split) ─────────────────────────
+let svgS;
+function initC3(){
+  svgS=d3.select('#cb3').append('svg');
+  ['grid','axX','axY','bars','ovs'].forEach(c=>svgS.append('g').attr('class',c));
+  drawC3();
+}
+function drawC3(){
+  const el=document.getElementById('cb3');
+  const W=el.clientWidth||700,H=el.clientHeight||260;
+  if(!W||!H)return;
+  const m={t:14,r:18,b:32,l:48};
+  svgS.attr('width',W).attr('height',H);
+  const tot=160*(S.gain/100);
+  const devD=DEVS.map((name,i)=>({name,cod:+(tot*.5*VAR[i]).toFixed(1),qa:+(tot*.3*VAR[i]).toFixed(1),res:+(tot*.2*VAR[i]).toFixed(1)}));
+  const keys=['cod','qa','res'], cols=['var(--cyan)','var(--green)','var(--amber)'];
+  const series=d3.stack().keys(keys)(devD);
+  const maxV=d3.max(devD,d=>d.cod+d.qa+d.res)*1.22;
+  const xS=d3.scaleBand().domain(DEVS).range([m.l,W-m.r]).padding(.28);
+  const yS=d3.scaleLinear().domain([0,maxV]).range([H-m.b,m.t]);
+  svgS.select('.grid').attr('transform',`translate(${m.l},0)`).call(d3.axisLeft(yS).ticks(4).tickSize(-(W-m.l-m.r)).tickFormat(''));
+  svgS.select('.axX').attr('transform',`translate(0,${H-m.b})`).call(d3.axisBottom(xS).tickSizeOuter(0));
+  svgS.select('.axY').attr('transform',`translate(${m.l},0)`).call(d3.axisLeft(yS).ticks(4).tickFormat(d=>d+'h'));
+  const layers=svgS.select('.bars').selectAll('.ly').data(series,d=>d.key).join('g').attr('class','ly').attr('fill',(d,i)=>cols[i]);
+  layers.selectAll('rect').data(d=>d,d=>d.data.name).join(
+    e=>e.append('rect').attr('rx',2).attr('x',d=>xS(d.data.name)).attr('y',H-m.b).attr('width',xS.bandwidth()).attr('height',0),
+    u=>u,r=>r.remove()
+  ).transition().duration(600).attr('x',d=>xS(d.data.name)).attr('y',d=>yS(d[1])).attr('width',xS.bandwidth()).attr('height',d=>yS(d[0])-yS(d[1]));
+  const tt=$('#tt3');
+  svgS.select('.ovs').selectAll('rect').data(devD,d=>d.name).join('rect')
+    .attr('x',d=>xS(d.name)).attr('y',m.t).attr('width',xS.bandwidth()).attr('height',H-m.t-m.b)
+    .attr('fill','none').attr('pointer-events','all')
+    .on('mouseover',(ev,d)=>{
+      const bx=el.getBoundingClientRect(),ex=ev.clientX-bx.left;
+      tt.style.opacity='1';tt.style.left=(ex+(ex>W/2?-195:15))+'px';tt.style.top='18px';
+      tt.innerHTML=`<span class="th">${d.name}</span><div class="tr"><span class="tl">Coding</span><span class="tv c">${d.cod}h</span></div><div class="tr"><span class="tl">Testing/QA</span><span class="tv g">${d.qa}h</span></div><div class="tr"><span class="tl">Research</span><span class="tv a">${d.res}h</span></div><div class="tr"><span class="tl">Total</span><span class="tv">${(d.cod+d.qa+d.res).toFixed(1)}h</span></div>`;
+    }).on('mouseleave',()=>tt.style.opacity='0');
+}
 
-      // Grid
-      lineSvgEl.select('.grid')
-        .attr('transform', `translate(${M.left},0)`)
-        .call(d3.axisLeft(yPR).ticks(5).tickSize(-iW).tickFormat(''));
+// ── CHART 4: Benchmark Grouped Bar ────────────────────────────────
+let svgG;
+function initC4(){
+  svgG=d3.select('#cb4').append('svg');
+  ['grid','axX','bars','lbls'].forEach(c=>svgG.append('g').attr('class',c));
+  drawC4();
+}
+function drawC4(){
+  const el=document.getElementById('cb4');
+  const W=el.clientWidth||700,H=el.clientHeight||260;
+  if(!W||!H)return;
+  const{team:T,rate:R,gain:G,tool:C}=S, g=G/100;
+  const m={t:14,r:18,b:44,l:18};
+  svgG.attr('width',W).attr('height',H);
+  const sF=R*10, aF=+(R*10*(1-g)+C).toFixed(0);
+  const sT=T*2, aT=Math.round(T*2*(1+g));
+  const metrics=[
+    {lbl:'Cost per Feature ($)',std:sF,ai:aF,fmt:v=>fC.format(v)},
+    {lbl:'Throughput (feat/mo)',std:sT,ai:aT,fmt:v=>fN.format(v)}
+  ];
+  const x0=d3.scaleBand().domain(metrics.map(d=>d.lbl)).range([m.l,W-m.r]).paddingInner(.38).paddingOuter(.18);
+  const x1=d3.scaleBand().domain(['std','ai']).range([0,x0.bandwidth()]).padding(.1);
+  const iH=H-m.t-m.b;
+  const flat=metrics.flatMap(mt=>[{grp:mt.lbl,k:'std',v:mt.std,f:mt.fmt},{grp:mt.lbl,k:'ai',v:mt.ai,f:mt.fmt}]);
+  const gMax=d3.rollup(flat,v=>d3.max(v,d=>d.v),d=>d.grp);
+  svgG.select('.axX').attr('transform',`translate(0,${H-m.b})`).call(d3.axisBottom(x0).tickSizeOuter(0));
+  const yAxis=d3.scaleLinear().domain([0,1]).range([H-m.b,m.t]);
+  svgG.select('.grid').attr('transform',`translate(${m.l},0)`).call(d3.axisLeft(yAxis).ticks(4).tickSize(-(W-m.l-m.r)).tickFormat(''));
+  svgG.select('.bars').selectAll('rect').data(flat,d=>d.grp+d.k).join(
+    e=>e.append('rect').attr('rx',3).attr('x',d=>x0(d.grp)+x1(d.k)).attr('y',H-m.b).attr('width',x1.bandwidth()).attr('height',0).attr('fill',d=>d.k==='std'?'var(--border)':'var(--cyan)'),
+    u=>u,r=>r.remove()
+  ).transition().duration(600)
+    .attr('x',d=>x0(d.grp)+x1(d.k))
+    .attr('y',d=>m.t+iH*(1-d.v/gMax.get(d.grp)))
+    .attr('width',x1.bandwidth())
+    .attr('height',d=>iH*(d.v/gMax.get(d.grp)));
+  svgG.select('.lbls').selectAll('text').data(flat,d=>d.grp+d.k).join('text')
+    .attr('text-anchor','middle').attr('font-size',11).attr('font-weight',600)
+    .attr('fill',d=>d.k==='std'?'var(--muted)':'var(--cyan)')
+    .transition().duration(600)
+    .attr('x',d=>x0(d.grp)+x1(d.k)+x1.bandwidth()/2)
+    .attr('y',d=>m.t+iH*(1-d.v/gMax.get(d.grp))-5)
+    .text(d=>d.f(d.v));
+  const tt=$('#tt4');
+  svgG.selectAll('.tx-ov').remove();
+  metrics.forEach(mt=>{
+    svgG.append('rect').attr('class','tx-ov')
+      .attr('x',x0(mt.lbl)).attr('y',m.t).attr('width',x0.bandwidth()).attr('height',iH)
+      .attr('fill','none').attr('pointer-events','all')
+      .on('mouseover',(ev)=>{
+        const bx=el.getBoundingClientRect(),ex=ev.clientX-bx.left;
+        const better=mt.std>mt.ai?'AI is cheaper':'AI is faster';
+        const diff=mt.std>mt.ai?((mt.std-mt.ai)/mt.std*100).toFixed(1)+'% less':'+'+((mt.ai-mt.std)/mt.std*100).toFixed(1)+'% more';
+        tt.style.opacity='1';tt.style.left=(ex+(ex>W/2?-200:15))+'px';tt.style.top='18px';
+        tt.innerHTML=`<span class="th">${mt.lbl}</span><div class="tr"><span class="tl">Standard</span><span class="tv">${mt.fmt(mt.std)}</span></div><div class="tr"><span class="tl">AI Team</span><span class="tv c">${mt.fmt(mt.ai)}</span></div><div class="tr"><span class="tl">Verdict</span><span class="tv g">${better} (${diff})</span></div>`;
+      }).on('mouseleave',()=>tt.style.opacity='0');
+  });
+}
 
-      // Axes
-      lineSvgEl.select('.ax-x').attr('transform', `translate(0,${H - M.bottom})`).call(d3.axisBottom(xS).tickSizeOuter(0));
-      lineSvgEl.select('.ax-y-left').attr('transform', `translate(${M.left},0)`).call(d3.axisLeft(yPR).ticks(5));
-      lineSvgEl.select('.ax-y-right').attr('transform', `translate(${W - M.right},0)`)
-        .call(d3.axisRight(yCT).ticks(5).tickFormat(d => d + 'h'));
+// ── TABS ──────────────────────────────────────────────────────────
+function setupTabs(){
+  $$('.tab').forEach(t=>t.addEventListener('click',()=>{
+    $$('.tab').forEach(x=>x.classList.remove('active'));
+    $$('.dash').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    $('#'+t.dataset.t).classList.add('active');
+    setTimeout(()=>{drawC1();drawC2();drawC3();drawC4();},55);
+  }));
+}
 
-      // AI shaded region — from Jan 2026 (index 3) to Mar 2026 (index 5)
-      const aiStart = xS('Jan 2026') - xS.step() * .3;
-      const aiEnd = W - M.right + xS.step() * .1;
-      lineSvgEl.select('.ai-region')
-        .attr('x', aiStart).attr('y', M.top)
-        .attr('width', Math.max(0, aiEnd - aiStart)).attr('height', iH)
-        .attr('fill', 'url(#AIGrad)');
+// ── CONTROLS ──────────────────────────────────────────────────────
+function setupControls(){
+  $('#inpTeam').addEventListener('input',e=>{S.team=+e.target.value;updateAll();});
+  $('#inpRate').addEventListener('input',e=>{S.rate=+e.target.value;updateAll();});
+  $('#inpGain').addEventListener('input',e=>{S.gain=+e.target.value;updateAll();});
+  $('#inpTool').addEventListener('input',e=>{S.tool=+e.target.value||0;updateAll();});
+}
 
-      // Lines
-      const linePR = d3.line().x(d => xS(d.month)).y(d => yPR(d.prs_completed)).curve(d3.curveMonotoneX);
-      const lineCT = d3.line().x(d => xS(d.month)).y(d => yCT(d.avg_cycle_time_hrs)).curve(d3.curveMonotoneX);
+// ── UPDATE ALL ────────────────────────────────────────────────────
+function updateAll(){
+  sidebar();row1();row2();row3();row4();
+  drawC1();drawC2();drawC3();drawC4();
+}
 
-      lineSvgEl.select('.line-pr')
-        .datum(DATA)
-        .attr('fill', 'none').attr('stroke', 'var(--cyan)').attr('stroke-width', 2.5)
-        .transition().duration(700)
-        .attr('d', linePR);
+// ── RESIZE ────────────────────────────────────────────────────────
+window.addEventListener('resize',()=>{drawC1();drawC2();drawC3();drawC4();});
 
-      lineSvgEl.select('.line-ct')
-        .datum(DATA)
-        .attr('fill', 'none').attr('stroke', 'var(--amber)').attr('stroke-width', 2.5).attr('stroke-dasharray', '6 3')
-        .transition().duration(700)
-        .attr('d', lineCT);
-
-      // Dots
-      const prDots = lineSvgEl.select('.dot-pr').selectAll('circle').data(DATA, d => d.month);
-      prDots.enter().append('circle').attr('r', 5).attr('fill', 'var(--cyan)').merge(prDots)
-        .transition().duration(600)
-        .attr('cx', d => xS(d.month)).attr('cy', d => yPR(d.prs_completed));
-
-      const ctDots = lineSvgEl.select('.dot-ct').selectAll('circle').data(DATA, d => d.month);
-      ctDots.enter().append('circle').attr('r', 5).attr('fill', 'var(--amber)').merge(ctDots)
-        .transition().duration(600)
-        .attr('cx', d => xS(d.month)).attr('cy', d => yCT(d.avg_cycle_time_hrs));
-
-      // Tooltip + crosshair
-      const tt = document.getElementById('ttLine');
-      const cH = lineSvgEl.select('.crosshair').attr('y1', M.top).attr('y2', H - M.bottom)
-        .attr('stroke', 'rgba(148,163,184,.35)').attr('stroke-width', 1).attr('stroke-dasharray', '4 3');
-
-      lineSvgEl.select('.overlay').attr('x', M.left).attr('y', M.top).attr('width', iW).attr('height', iH)
-        .on('mousemove', function (event) {
-          const [mx] = d3.pointer(event);
-          const idx = Math.round((mx - M.left) / (iW / (DATA.length - 1)));
-          const d = DATA[Math.max(0, Math.min(idx, DATA.length - 1))];
-          const cx = xS(d.month);
-          cH.style('display', 'block').attr('x1', cx).attr('x2', cx);
-          tt.style.opacity = '1';
-          tt.style.left = (cx + (cx > iW / 2 ? -175 : 10)) + 'px';
-          tt.style.top = (M.top + 10) + 'px';
-          tt.innerHTML = `
-        <span class="t-title">${d.month} <span style="font-size:.7rem;color:var(--${d.mode === 'Baseline' ? 'muted' : 'cyan'})">${d.mode}</span></span>
-        <div class="t-row"><span class="t-label">PRs Completed</span><span class="t-val cyan">${d.prs_completed}</span></div>
-        <div class="t-row"><span class="t-label">Cycle Time</span><span class="t-val amber">${d.avg_cycle_time_hrs} hrs</span></div>
-        <div class="t-row"><span class="t-label">Deploy Freq</span><span class="t-val">${d.deployment_frequency}</span></div>`;
-        })
-        .on('mouseleave', () => { tt.style.opacity = '0'; cH.style('display', 'none'); });
-    }
-
-    // ══════════════════════════════════════════════════════════════════
-    // CHART 2 — Grouped Bar Chart (Investigation Hours)
-    // ══════════════════════════════════════════════════════════════════
-    let barSvgEl;
-
-    function initBarChart() {
-      barSvgEl = d3.select('#barChartBody').append('svg');
-      barSvgEl.append('g').attr('class', 'grid');
-      barSvgEl.append('g').attr('class', 'axis ax-x');
-      barSvgEl.append('g').attr('class', 'axis ax-y');
-      barSvgEl.append('g').attr('class', 'bars');
-      barSvgEl.append('g').attr('class', 'bar-labels');
-      barSvgEl.append('rect').attr('class', 'bar-overlay').style('fill', 'none').style('pointer-events', 'all');
-      renderBarChart();
-    }
-
-    function renderBarChart() {
-      const body = document.getElementById('barChartBody');
-      const W = body.clientWidth || 700;
-      const H = body.clientHeight || 320;
-      if (!W || !H) return;
-
-      const M = { top: 20, right: 30, bottom: 60, left: 54 };
-      const iW = W - M.left - M.right;
-      const iH = H - M.top - M.bottom;
-
-      barSvgEl.attr('width', W).attr('height', H);
-
-      // Pair months: match Baseline Oct→AI Jan, Nov→Feb, Dec→Mar
-      const pairs = [
-        { label: 'Oct / Jan', base: BASELINE[0].avg_investigation_hrs, ai: AI[0].avg_investigation_hrs },
-        { label: 'Nov / Feb', base: BASELINE[1].avg_investigation_hrs, ai: AI[1].avg_investigation_hrs },
-        { label: 'Dec / Mar', base: BASELINE[2].avg_investigation_hrs, ai: AI[2].avg_investigation_hrs }
-      ];
-
-      const x0 = d3.scaleBand().domain(pairs.map(d => d.label)).range([M.left, W - M.right]).paddingInner(.3).paddingOuter(.2);
-      const x1 = d3.scaleBand().domain(['base', 'ai']).range([0, x0.bandwidth()]).padding(.1);
-      const yS = d3.scaleLinear().domain([0, d3.max(pairs, d => d.base) * 1.3]).range([H - M.bottom, M.top]);
-
-      // Grid
-      barSvgEl.select('.grid').attr('transform', `translate(${M.left},0)`)
-        .call(d3.axisLeft(yS).ticks(5).tickSize(-iW).tickFormat(''));
-
-      // Axes
-      barSvgEl.select('.ax-x').attr('transform', `translate(0,${H - M.bottom})`).call(d3.axisBottom(x0).tickSizeOuter(0));
-      barSvgEl.select('.ax-y').attr('transform', `translate(${M.left},0)`).call(d3.axisLeft(yS).ticks(5).tickFormat(d => d + 'h'));
-
-      // X axis tick sub-labels
-      barSvgEl.select('.ax-x').selectAll('.x-sub').remove();
-      barSvgEl.select('.ax-x').append('text').attr('class', 'x-sub').attr('x', iW / 2 + M.left - M.right).attr('y', 46)
-        .attr('text-anchor', 'middle').attr('fill', 'var(--muted)').attr('font-size', '11px').text('Baseline month / AI-Enhanced month');
-
-      // Flat data for bars
-      const flat = [];
-      pairs.forEach(p => {
-        flat.push({ label: p.label, key: 'base', val: p.base });
-        flat.push({ label: p.label, key: 'ai', val: p.ai });
-      });
-
-      const bars = barSvgEl.select('.bars').selectAll('rect').data(flat, d => d.label + d.key);
-      bars.enter().append('rect')
-        .attr('rx', 3)
-        .attr('x', d => x0(d.label) + x1(d.key))
-        .attr('y', H - M.bottom)
-        .attr('width', x1.bandwidth())
-        .attr('height', 0)
-        .attr('fill', d => d.key === 'base' ? 'var(--border)' : 'var(--cyan)')
-        .merge(bars)
-        .transition().duration(600)
-        .attr('x', d => x0(d.label) + x1(d.key))
-        .attr('y', d => yS(d.val))
-        .attr('width', x1.bandwidth())
-        .attr('height', d => (H - M.bottom) - yS(d.val));
-
-      // Value labels on top of bars
-      const lbls = barSvgEl.select('.bar-labels').selectAll('text').data(flat, d => d.label + d.key);
-      lbls.enter().append('text')
-        .attr('text-anchor', 'middle')
-        .attr('font-size', '11px')
-        .attr('fill', d => d.key === 'base' ? 'var(--muted)' : 'var(--cyan)')
-        .attr('font-weight', '600')
-        .merge(lbls)
-        .transition().duration(600)
-        .attr('x', d => x0(d.label) + x1(d.key) + x1.bandwidth() / 2)
-        .attr('y', d => yS(d.val) - 6)
-        .text(d => fmtN.format(d.val) + 'h');
-    }
-
-    // ──────────────────────── RESIZE ────────────────────────────────
-    function resizeCharts() {
-      renderLineChart();
-      renderBarChart();
-    }
-
-    window.addEventListener('resize', () => resizeCharts());
-
-    // ──────────────────────── BOOT ──────────────────────────────────
-    init();
-  </script>
+// ── BOOT ──────────────────────────────────────────────────────────
+row1();row2();row3();row4();
+initC1();initC2();initC3();initC4();
+sidebar();setupTabs();setupControls();
+</script>
 </body>
-
 </html>
